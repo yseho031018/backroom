@@ -36,29 +36,31 @@ function updateFootsteps(dt, moving, level) {
 function playFootstep(level) {
   if (!audioCtx) return;
   const sr  = audioCtx.sampleRate;
-  const dur = 0.07 + (level === 2 ? 0.03 : 0);
+  const dur = 0.13;
   const buf = audioCtx.createBuffer(1, sr * dur | 0, sr);
   const d   = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++)
-    d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.18));
-  const src  = audioCtx.createBufferSource();
-  const filt = audioCtx.createBiquadFilter();
-  const g    = audioCtx.createGain();
-  filt.type = 'bandpass';
-  filt.frequency.value = [280, 750, 1100][level] || 280;
-  filt.Q.value = 2.5;
-  g.gain.value = [0.28, 0.38, 0.32][level] || 0.28;
-  src.buffer = buf;
-  src.connect(filt); filt.connect(g); g.connect(masterGain); src.start();
-  // Level 2: 물 튀기는 잔향
-  if (level === 2) {
-    const rev = audioCtx.createBiquadFilter();
-    rev.type = 'lowpass'; rev.frequency.value = 600;
-    const rg = audioCtx.createGain(); rg.gain.value = 0.12;
-    const src2 = audioCtx.createBufferSource();
-    src2.buffer = buf; src2.connect(rev); rev.connect(rg);
-    rg.connect(masterGain); src2.start(audioCtx.currentTime + 0.08);
+  // 부드러운 envelope: 짧은 attack + 긴 decay
+  for (let i = 0; i < d.length; i++) {
+    const t       = i / d.length;
+    const attack  = Math.min(1, t / 0.04);          // 4% 구간 fade-in
+    const decay   = Math.exp(-t * 9);               // 완만한 감쇠
+    d[i] = (Math.random() * 2 - 1) * attack * decay;
   }
+  const src   = audioCtx.createBufferSource();
+  // 로우패스로 고주파 제거 → 부드러운 질감
+  const lp    = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 320; lp.Q.value = 0.8;
+  // 약한 밴드패스로 카펫 특유의 무게감 추가
+  const bp    = audioCtx.createBiquadFilter();
+  bp.type = 'peaking'; bp.frequency.value = 180; bp.gain.value = 6; bp.Q.value = 1.2;
+  const g     = audioCtx.createGain();
+  // gain envelope: 클릭 없이 부드럽게 시작/끝
+  const now   = audioCtx.currentTime;
+  g.gain.setValueAtTime(0, now);
+  g.gain.linearRampToValueAtTime(0.22, now + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  src.buffer = buf;
+  src.connect(lp); lp.connect(bp); bp.connect(g); g.connect(masterGain); src.start();
 }
 
 // 멀리서 들리는 발소리 (엔티티 암시)

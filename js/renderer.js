@@ -3,11 +3,15 @@ const W = 600, H = 480;
 
 let _imgData = null, _buf = null;
 let _vigRadial = null, _vigLinear = null;
+let _grainCanvas = null, _grainCtx = null;
 const zBuffer = new Float32Array(W); // 열별 보정 거리 (스프라이트 occlusion용)
 
 function initRenderer(ctx) {
   _imgData = ctx.createImageData(W, H);
   _buf = _imgData.data;
+  _grainCanvas = document.createElement('canvas');
+  _grainCanvas.width = W; _grainCanvas.height = H;
+  _grainCtx = _grainCanvas.getContext('2d');
 
   _vigRadial = ctx.createRadialGradient(W/2, H/2, H*0.12, W/2, H/2, H*0.78);
   _vigRadial.addColorStop(0,    'rgba(0,0,0,0)');
@@ -102,7 +106,7 @@ function drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult) {
 }
 
 function drawScene(ctx) {
-  const lvl      = { fogDist: 10, ambMin: 0.28, ceilAmbMin: 0.22 };
+  const lvl      = { fogDist: 18, ambMin: 0.28, ceilAmbMin: 0.22 };
   const FOG_DIST = lvl.fogDist;
   const lightMult = 1;
 
@@ -246,4 +250,54 @@ function drawScene(ctx) {
   ctx.beginPath(); ctx.moveTo(W/2-8, H/2); ctx.lineTo(W/2+8, H/2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(W/2, H/2-8); ctx.lineTo(W/2, H/2+8); ctx.stroke();
 
+  drawCameraEffect(ctx);
+}
+
+// ── 카메라 효과 ─────────────────────────────────────────────────
+function drawCameraEffect(ctx) {
+  // 스캔라인
+  ctx.fillStyle = 'rgba(0,0,0,0.09)';
+  for (let y = 0; y < H; y += 2) ctx.fillRect(0, y, W, 1);
+
+  // 필름 그레인 (오프스크린 캔버스에 그린 뒤 블렌딩)
+  const gd = _grainCtx.createImageData(W, H);
+  const gdat = gd.data;
+  for (let i = 0; i < gdat.length; i += 4) {
+    const n = (Math.random() - 0.5) * 64 | 0;
+    gdat[i] = gdat[i+1] = gdat[i+2] = 128 + n;
+    gdat[i+3] = 255;
+  }
+  _grainCtx.putImageData(gd, 0, 0);
+  ctx.globalAlpha = 0.07;
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.drawImage(_grainCanvas, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+
+  // 색수차: 빨강 채널 왼쪽, 파랑 채널 오른쪽으로 미세하게 분리
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = 'rgba(255,0,0,0.035)';  ctx.fillRect(-1, 0, W, H);
+  ctx.fillStyle = 'rgba(0,0,255,0.035)';  ctx.fillRect(1, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // 렌즈 왜곡 암시 (가장자리 어두움 추가)
+  ctx.fillStyle = 'rgba(0,0,0,0.10)';
+  ctx.fillRect(0, 0, 4, H); ctx.fillRect(W-4, 0, 4, H);
+
+  // REC 표시 (1.2초 주기로 깜빡임)
+  if (Math.floor(gameTime * 1.6) % 2 === 0) {
+    ctx.fillStyle = 'rgba(230,25,25,0.90)';
+    ctx.beginPath(); ctx.arc(16, 14, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(235,230,200,0.85)';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText('REC', 26, 18);
+  }
+
+  // 타임스탬프
+  const d = new Date();
+  const ts = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}  ` +
+             `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  ctx.fillStyle = 'rgba(210,205,165,0.62)';
+  ctx.font = '10px monospace';
+  ctx.fillText(ts, W - 158, H - 8);
 }

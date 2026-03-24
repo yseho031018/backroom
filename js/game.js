@@ -36,7 +36,7 @@ const GAME_KEYS = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W
 
 function move(dt) {
   if (game.dead) return;
-  const SPD = 2.4;
+  const SPD = 1.5;
   let fx = 0, fy = 0;
   if (keys['ArrowUp']   ||keys['w']||keys['W']) { fx+=Math.cos(game.angle);    fy+=Math.sin(game.angle);    }
   if (keys['ArrowDown'] ||keys['s']||keys['S']) { fx-=Math.cos(game.angle);    fy-=Math.sin(game.angle);    }

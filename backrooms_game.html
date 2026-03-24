@@ -5,43 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#1a1a14;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:monospace;color:#b8b89a;}
-#gc{position:relative;width:600px;}
-canvas{display:block;}
-#ui{display:flex;justify-content:space-between;flex-wrap:wrap;padding:6px 12px;background:#111108;border:2px solid #3a3a28;border-top:none;gap:4px;}
-#ui span{font-size:12px;color:#a0a080;}
-#controls{font-size:11px;color:#606050;text-align:center;padding:5px;background:#0a0a06;border:2px solid #3a3a28;border-top:none;}
-#msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,10,6,0.92);border:1px solid #a0a080;padding:20px 32px;text-align:center;font-size:15px;line-height:2;pointer-events:none;display:none;white-space:nowrap;color:#b8b89a;z-index:20;}
+body{background:#000;width:100vw;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+#gc{position:relative;flex-shrink:0;}
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+
+#ui{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;flex-wrap:wrap;padding:5px 12px;background:rgba(10,10,6,0.72);border-top:1px solid rgba(60,60,40,0.5);gap:4px;pointer-events:none;}
+#ui span{font-family:monospace;font-size:12px;color:#a0a080;}
+
+#msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,10,6,0.92);border:1px solid #a0a080;padding:20px 32px;text-align:center;font-size:15px;line-height:2;pointer-events:none;display:none;white-space:nowrap;color:#b8b89a;font-family:monospace;z-index:20;}
+
 #ss{position:absolute;inset:0;background:rgba(8,8,5,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10;}
-#ss h1{font-size:28px;color:#c8c8a0;letter-spacing:4px;}
-#ss p{font-size:13px;color:#808068;line-height:1.8;text-align:center;}
+#ss h1{font-size:28px;color:#c8c8a0;letter-spacing:4px;font-family:monospace;}
+#ss p{font-size:13px;color:#808068;line-height:1.8;text-align:center;font-family:monospace;}
 button{background:#181810;border:1px solid #a0a080;color:#c8c8a0;padding:10px 28px;font-family:monospace;font-size:14px;cursor:pointer;letter-spacing:2px;}
 button:hover{background:#252518;}
-#dpad{position:absolute;bottom:10px;left:10px;display:none;user-select:none;-webkit-user-select:none;}
+
+#dpad{position:absolute;bottom:48px;left:10px;display:none;user-select:none;-webkit-user-select:none;}
 #dpad-center{position:relative;width:120px;height:120px;}
 .dp-btn{position:absolute;width:40px;height:40px;background:rgba(200,168,75,0.18);border:1px solid rgba(200,168,75,0.4);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(200,168,75,0.7);border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #dp-up{top:0;left:40px;} #dp-down{bottom:0;left:40px;} #dp-left{top:40px;left:0;} #dp-right{top:40px;right:0;}
-@media(max-width:620px){
-  #gc{width:100vw;}
-  canvas{width:100%;height:auto;}
-  #dpad{display:block;}
-}
+@media(max-width:620px){ #dpad{display:block;} }
 </style>
 </head>
 <body>
 <div id="gc">
   <canvas id="canvas" width="600" height="480"></canvas>
-  <div id="ui">
-<span id="battery">BATTERY: ████████ 100%</span>
-    <span id="sanity"><span style="color:#80c080">SANITY: ████████ 100%</span></span>
-    <span>위치: (<span id="px">0</span>, <span id="py">0</span>)</span>
+  <div id="ui" style="display:none">
+    <span id="battery"></span>
+    <span id="sanity"></span>
+    <span><span id="px"></span><span id="py"></span></span>
   </div>
-  <div id="controls">클릭 후 마우스 시야 회전 &nbsp;|&nbsp; WASD 이동</div>
   <div id="msg"></div>
   <div id="ss">
     <h1>BACKROOMS</h1>
     <p>당신은 현실에서 벗어나<br>끝없는 공간에 갇혔습니다.<br><br>
-       계단을 찾아 탈출하라.
+       탈출구를 찾아라.
     </p>
     <button onclick="startGame()">— 입장 —</button>
   </div>
@@ -61,5 +59,23 @@ button:hover{background:#252518;}
 <script src="js/entities.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/game.js"></script>
+<script>
+function resizeGame() {
+  const BASE_W = 600, BASE_H = 480;
+  const scaleX = window.innerWidth  / BASE_W;
+  const scaleY = window.innerHeight / BASE_H;
+  const scale  = Math.min(scaleX, scaleY);
+  const w = Math.floor(BASE_W * scale);
+  const h = Math.floor(BASE_H * scale);
+  const gc     = document.getElementById('gc');
+  const canvas = document.getElementById('canvas');
+  gc.style.width      = w + 'px';
+  gc.style.height     = h + 'px';
+  canvas.style.width  = w + 'px';
+  canvas.style.height = h + 'px';
+}
+window.addEventListener('resize', resizeGame);
+resizeGame();
+</script>
 </body>
 </html>
