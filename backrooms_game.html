@@ -2,7 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="screen-orientation" content="landscape">
+<meta name="x5-orientation" content="landscape">
+<meta name="full-screen" content="yes">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#000;width:100vw;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
@@ -25,9 +28,27 @@ button:hover{background:#252518;}
 .dp-btn{position:absolute;width:40px;height:40px;background:rgba(200,168,75,0.18);border:1px solid rgba(200,168,75,0.4);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(200,168,75,0.7);border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #dp-up{top:0;left:40px;} #dp-down{bottom:0;left:40px;} #dp-left{top:40px;left:0;} #dp-right{top:40px;right:0;}
 @media(max-width:620px){ #dpad{display:block;} }
+
+/* 세로 모드일 때 회전 안내 오버레이 */
+#rotate-msg{
+  display:none;
+  position:fixed;inset:0;z-index:100;
+  background:#000;
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  color:#a0a080;font-family:monospace;font-size:14px;text-align:center;
+}
+#rotate-msg .icon{font-size:48px;animation:spin 1.5s ease-in-out infinite alternate;}
+@keyframes spin{from{transform:rotate(-90deg);}to{transform:rotate(0deg);}}
+@media(orientation:portrait) and (max-width:900px){
+  #rotate-msg{display:flex;}
+}
 </style>
 </head>
 <body>
+<div id="rotate-msg">
+  <div class="icon">📱</div>
+  <div>기기를 가로로 돌려주세요</div>
+</div>
 <div id="gc">
   <canvas id="canvas" width="600" height="480"></canvas>
   <div id="ui" style="display:none">
@@ -41,7 +62,7 @@ button:hover{background:#252518;}
     <p>당신은 현실에서 벗어나<br>끝없는 공간에 갇혔습니다.<br><br>
        탈출구를 찾아라.
     </p>
-    <button onclick="startGame()">— 입장 —</button>
+    <button onclick="lockLandscape();startGame()">— 입장 —</button>
   </div>
   <div id="dpad">
     <div id="dpad-center">
@@ -76,6 +97,14 @@ function resizeGame() {
 }
 window.addEventListener('resize', resizeGame);
 resizeGame();
+
+// 모바일 가로 고정 시도 (버튼 클릭 이후에 호출해야 작동)
+function lockLandscape() {
+  try {
+    const s = screen.orientation || screen.msOrientation;
+    if (s && s.lock) s.lock('landscape').catch(()=>{});
+  } catch(e) {}
+}
 </script>
 </body>
 </html>
