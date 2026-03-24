@@ -23,11 +23,11 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
 button{background:#181810;border:1px solid #a0a080;color:#c8c8a0;padding:10px 28px;font-family:monospace;font-size:14px;cursor:pointer;letter-spacing:2px;}
 button:hover{background:#252518;}
 
-#dpad{position:absolute;bottom:48px;left:10px;display:none;user-select:none;-webkit-user-select:none;}
+#dpad{position:absolute;bottom:12px;left:10px;display:none;user-select:none;-webkit-user-select:none;}
 #dpad-center{position:relative;width:120px;height:120px;}
-.dp-btn{position:absolute;width:40px;height:40px;background:rgba(200,168,75,0.18);border:1px solid rgba(200,168,75,0.4);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(200,168,75,0.7);border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-#dp-up{top:0;left:40px;} #dp-down{bottom:0;left:40px;} #dp-left{top:40px;left:0;} #dp-right{top:40px;right:0;}
-@media(max-width:620px){ #dpad{display:block;} }
+.dp-btn{position:absolute;width:44px;height:44px;background:rgba(200,168,75,0.18);border:1px solid rgba(200,168,75,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(200,168,75,0.7);border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#dp-up{top:0;left:38px;} #dp-down{bottom:0;left:38px;} #dp-left{top:38px;left:0;} #dp-right{top:38px;right:0;}
+@media(hover:none) and (pointer:coarse){ #dpad{display:block;} }
 
 /* 세로 모드일 때 회전 안내 오버레이 */
 #rotate-msg{
@@ -98,8 +98,15 @@ function resizeGame() {
 window.addEventListener('resize', resizeGame);
 resizeGame();
 
-// 모바일 가로 고정 시도 (버튼 클릭 이후에 호출해야 작동)
+// 풀스크린 + 가로 고정 (버튼 클릭 이후에 호출해야 작동)
 function lockLandscape() {
+  // 풀스크린
+  const el = document.documentElement;
+  try {
+    if      (el.requestFullscreen)       el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } catch(e) {}
+  // 가로 고정
   try {
     const s = screen.orientation || screen.msOrientation;
     if (s && s.lock) s.lock('landscape').catch(()=>{});
