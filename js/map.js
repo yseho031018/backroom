@@ -20,7 +20,7 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성 — 백룸 스타일
+// 개별 셀 생성 — 백룸 스타일 (방 타입별 고유 구조)
 const ZONE = 10;
 
 function generateCell(gx, gy) {
@@ -30,15 +30,18 @@ function generateCell(gx, gy) {
   const onEast  = lx === ZONE - 1;
   const onSouth = ly === ZONE - 1;
 
-  const zt       = rand(zx, zy, 1);
-  const isLarge  = zt < 0.18;              // 18%: 넓은 방 (벽 합쳐짐, 큰 기둥)
-  const isSubdiv = zt >= 0.18 && zt < 0.45; // 27%: 내부 분할벽 있는 방
-  const isEmpty  = zt > 0.78;              // 22%: 기둥 없는 빈 방
+  const zt = rand(zx, zy, 1);
+  // 방 타입 분류
+  // A(0.00~0.28): 빈 방        B(0.28~0.48): 열주(기둥 2열)
+  // C(0.48~0.63): 격자 큰 기둥  D(0.63~0.78): 파티션 방
+  // E(0.78~0.90): 밀집 기둥    F(0.90~1.00): 대형 개방
+
+  const isLargeOpen = zt >= 0.90;
 
   // ── 경계벽 ──────────────────────────────────────────────
   if (onEast || onSouth) {
     if (onEast && onSouth) return 1;
-    const mp = isLarge ? 0.48 : 0.18;
+    const mp = isLargeOpen ? 0.55 : 0.16;
     if (onEast) {
       if (rand(zx, zy, 11) < mp) return 0;
       const oy = 2 + (rand(zx, zy, 12) * 4 | 0);
@@ -49,34 +52,38 @@ function generateCell(gx, gy) {
     return (lx >= ox && lx < ox + 2) ? 0 : 1;
   }
 
-  // ── 내부 분할벽 (양 끝 2칸 항상 열어 고립 방지) ──────────
-  if (isSubdiv) {
-    if (rand(zx, zy, 21) < 0.5) {
-      // 수직 분할벽
-      const wx2 = 3 + (rand(zx, zy, 22) * 3 | 0);
-      if (lx === wx2 && ly >= 2 && ly <= 6) {
-        const gy2 = 2 + (rand(zx, zy, 23) * 2 | 0);
-        if (!(ly >= gy2 && ly < gy2 + 2)) return 1;
-      }
-    } else {
-      // 수평 분할벽
-      const wy2 = 3 + (rand(zx, zy, 24) * 3 | 0);
-      if (ly === wy2 && lx >= 2 && lx <= 6) {
-        const gx2 = 2 + (rand(zx, zy, 25) * 2 | 0);
-        if (!(lx >= gx2 && lx < gx2 + 2)) return 1;
-      }
-    }
+  // ── A: 빈 방 (28%) ──────────────────────────────────────
+  if (zt < 0.28) return 0;
+
+  // ── B: 열주 방 (20%) — 양쪽 벽 따라 기둥 2열 ──────────────
+  if (zt < 0.48) {
+    if ((lx === 1 || lx === 7) && ly % 3 === 1) return 4;
+    return 0;
   }
 
-  // ── 기둥 ────────────────────────────────────────────────
-  if (!isEmpty && lx % 3 === 1 && ly % 3 === 1) {
-    const prob = isLarge ? 0.65 : zt < 0.60 ? 0.45 : 0.25;
-    if (rand(gx, gy, 42) < prob) {
-      if (isLarge) return 6;                    // 2×2타일 큰 기둥
-      return rand(gx, gy, 43) < 0.25 ? 5 : 4;  // 직사각형 / 정사각형
-    }
+  // ── C: 격자 기둥 방 (15%) — 4칸 간격 큰 기둥 ──────────────
+  if (zt < 0.63) {
+    if (lx % 4 === 2 && ly % 4 === 2) return 6;
+    return 0;
   }
 
+  // ── D: 파티션 방 (15%) — 세로 칸막이 2개, 개구부 있음 ────────
+  if (zt < 0.78) {
+    const g1 = 2 + (rand(zx, zy, 41) * 4 | 0); // 왼쪽 칸막이 개구부
+    const g2 = 2 + (rand(zx, zy, 42) * 4 | 0); // 오른쪽 칸막이 개구부
+    // 양 끝(ly=0, 8)은 항상 열려 있어 고립 없음
+    if (lx === 3 && ly >= 1 && ly <= 7 && !(ly >= g1 && ly < g1 + 2)) return 1;
+    if (lx === 6 && ly >= 1 && ly <= 7 && !(ly >= g2 && ly < g2 + 2)) return 1;
+    return 0;
+  }
+
+  // ── E: 밀집 기둥 방 (12%) — 좁은 틈새 미로 ─────────────────
+  if (zt < 0.90) {
+    if (lx % 2 === 1 && ly % 2 === 1 && rand(gx, gy, 42) < 0.60) return 4;
+    return 0;
+  }
+
+  // ── F: 대형 개방 방 (10%) — 경계벽 합쳐짐, 구조물 없음 ────────
   return 0;
 }
 
