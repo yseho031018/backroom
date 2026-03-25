@@ -161,7 +161,11 @@ document.addEventListener('keydown', e => {
   keys[e.key] = true;
   if (GAME_KEYS.has(e.key)) e.preventDefault();
 });
-document.addEventListener('keyup', e => { keys[e.key] = false; });
+document.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  // Shift 누른 채 키를 떼면 e.key 대소문자가 바뀌어 키가 끼는 문제 방지
+  if (e.key.length === 1) { keys[e.key.toUpperCase()] = false; keys[e.key.toLowerCase()] = false; }
+});
 
 // 포커스 잃거나 포인터락 해제 시 모든 키 초기화
 function clearKeys() { for (const k in keys) keys[k] = false; }
