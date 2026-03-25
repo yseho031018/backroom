@@ -20,21 +20,31 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성: 방(Room) + 복도(Corridor) + 벽(Wall)
+// 개별 셀 생성: 랜덤 방(Room) + 복도(Corridor) + 벽(Wall)
 function generateCell(gx, gy) {
-  // 9격자 기준 로컬 좌표
-  const rx = ((gx % 9) + 9) % 9;
-  const ry = ((gy % 9) + 9) % 9;
+  // ① 복도 (3의 배수 격자선) — 항상 열림, 연결 보장
+  if (gx % 3 === 0 || gy % 3 === 0) return 0;
 
-  // ① 방 구역 (5×5 열린 공간, 네 모서리에 기둥)
-  if (rx >= 2 && rx <= 6 && ry >= 2 && ry <= 6) {
-    if ((rx === 2 || rx === 6) && (ry === 2 || ry === 6)) return 1; // 모서리 기둥
-    return 0; // 열린 방
+  // ② 각 9×9 구역마다 랜덤하게 방 배치
+  //    인접 구역도 확인하여 방이 경계를 넘는 경우 처리
+  const sx = Math.floor(gx / 9), sy = Math.floor(gy / 9);
+  for (let dsx = -1; dsx <= 1; dsx++) {
+    for (let dsy = -1; dsy <= 1; dsy++) {
+      const nsx = sx + dsx, nsy = sy + dsy;
+      if (rand(nsx, nsy, 7) > 0.62) continue; // 약 62% 구역에만 방 생성
+
+      // 방 크기: 너비 3~6, 높이 3~6 (랜덤)
+      const rw = 3 + (rand(nsx, nsy, 2) * 4 | 0);
+      const rh = 3 + (rand(nsx, nsy, 3) * 4 | 0);
+      // 방 위치: 구역 내 랜덤 오프셋 (벽과 1칸 이상 여백)
+      const ox = 1 + (rand(nsx, nsy, 4) * (8 - rw) | 0);
+      const oy = 1 + (rand(nsx, nsy, 5) * (8 - rh) | 0);
+
+      const x0 = nsx * 9 + ox, x1 = x0 + rw - 1;
+      const y0 = nsy * 9 + oy, y1 = y0 + rh - 1;
+      if (gx >= x0 && gx <= x1 && gy >= y0 && gy <= y1) return 0;
+    }
   }
-
-  // ② 복도 (3의 배수 격자선) — 항상 열림으로 연결 보장
-  const cx = gx % 3 === 0, cy = gy % 3 === 0;
-  if (cx || cy) return 0;
 
   // ③ 그 외 → 벽
   return 1;
