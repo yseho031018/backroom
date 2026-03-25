@@ -75,7 +75,7 @@ function drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult) {
   const WALL_SCALE = 1.6;
   for (const sp of sd) {
     if (sp.dist < 0.4) continue;
-    const fog = Math.max(0, 1 - sp.dist / FOG_DIST) * lightMult;
+    const _f0 = Math.max(0, 1 - sp.dist / FOG_DIST); const fog = _f0 * _f0 * lightMult;
     if (fog < 0.01) continue;
 
     const sprH  = Math.min(H * 3.5, WALL_SCALE * H / sp.dist) * (sp.scale || 1);
@@ -145,7 +145,7 @@ function drawScene(ctx) {
     }
     const isFloor  = sy > HALF;
     const rowDist  = camH / py2;
-    const fog      = Math.max(0, 1 - rowDist / FOG_DIST);
+    const _f1 = Math.max(0, 1 - rowDist / FOG_DIST); const fog = _f1 * _f1;
     const baseShade = (isFloor
       ? Math.max(lvl.ambMin,      lightAhead * 0.85 - rowDist * 0.025)
       : Math.max(lvl.ceilAmbMin,  lightAhead * 0.78 - rowDist * 0.032)) * fog;
@@ -164,7 +164,7 @@ function drawScene(ctx) {
           buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         } else if (tr > 200) {
-          const lampFog = Math.max(0, 1 - rowDist / FOG_DIST) * lightMult;
+          const lampFog = _f1 * _f1 * lightMult;
           buf[pi]=tr*lampFog|0; buf[pi+1]=tg*lampFog|0; buf[pi+2]=tb*lampFog|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         }
@@ -186,7 +186,7 @@ function drawScene(ctx) {
     const bot   = Math.min(H, HALF + wallH*0.5)|0;
     if (bot <= top) continue;
     const texUi = Math.floor(ray.wallU * TEX) & (TEX-1);
-    const fog   = Math.max(0, 1 - corr / FOG_DIST);
+    const _f2 = Math.max(0, 1 - corr / FOG_DIST); const fog = _f2 * _f2;
     const wl    = getLightAtPoint(ray.wx, ray.wy, nearLamps) * lightMult;
     let shade   = wl * fog * (ray.side === 0 ? 1 : 0.88);
 
