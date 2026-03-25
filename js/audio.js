@@ -57,7 +57,7 @@ function playFootstep(level) {
   // gain envelope: 클릭 없이 부드럽게 시작/끝
   const now   = audioCtx.currentTime;
   g.gain.setValueAtTime(0, now);
-  g.gain.linearRampToValueAtTime(0.22, now + 0.005);
+  g.gain.linearRampToValueAtTime(0.10, now + 0.005);
   g.gain.exponentialRampToValueAtTime(0.001, now + dur);
   src.buffer = buf;
   src.connect(lp); lp.connect(bp); bp.connect(g); g.connect(masterGain); src.start();
