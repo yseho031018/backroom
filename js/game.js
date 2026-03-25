@@ -103,11 +103,6 @@ function move(dt) {
 }
 
 function updateUI() {
-  const bp  = Math.round(game.battery);
-  const bb  = Math.round(bp / 12.5);
-  document.getElementById('battery').innerHTML =
-    'BATTERY: ' + '█'.repeat(bb) + '░'.repeat(8-bb) + ' ' + bp + '%';
-
   const sp  = Math.round(game.sanity);
   const sb  = Math.round(sp / 12.5);
   const sColor = sp > 60 ? '#80c080' : sp > 30 ? '#c0a040' : '#c04040';
