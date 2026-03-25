@@ -159,7 +159,7 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('mousemove', e => {
   if (document.pointerLockElement === canvas && game.running) {
     game.angle += e.movementX * 0.003;
-    pitch = Math.max(-160, Math.min(160, pitch - e.movementY * 0.5));
+    pitch = Math.max(-235, Math.min(235, pitch - e.movementY * 0.5));
   }
 });
 
@@ -170,7 +170,7 @@ canvas.addEventListener('touchstart', e => {
 canvas.addEventListener('touchmove', e => {
   if (!game.running) return;
   game.angle += (e.touches[0].clientX - lastTouchX) * 0.005;
-  pitch = Math.max(-160, Math.min(160, pitch + (e.touches[0].clientY - lastTouchY) * 0.4));
+  pitch = Math.max(-235, Math.min(235, pitch + (e.touches[0].clientY - lastTouchY) * 0.4));
   lastTouchX=e.touches[0].clientX; lastTouchY=e.touches[0].clientY;
   e.preventDefault();
 }, { passive: false });
