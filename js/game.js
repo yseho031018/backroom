@@ -65,12 +65,13 @@ function move(dt) {
   else if (!blocked(game.px, ny))     { game.py=ny; }
 
   isMoving = len > 0;
+  // 달리기 bob: 속도와 무관하게 일정한 기본 속도로 (1.5 고정)
   const bobSpeed = isCrouching ? 4 : 6.5;
-  if (isMoving) bobPhase += spd * bobSpeed;
+  if (isMoving) bobPhase += 1.5 * dt * bobSpeed;
   bobAmp = isMoving ? Math.min(1, bobAmp+dt*12) : Math.max(0, bobAmp-dt*9);
 
-  // 앉기: 카메라를 부드럽게 낮춤 (HALF 감소 → 시야 아래로)
-  const crouchTarget = isCrouching ? -70 : 0;
+  // 앉기: HALF 증가 → 전체 화면이 아래로 이동
+  const crouchTarget = isCrouching ? 70 : 0;
   crouchOffset += (crouchTarget - crouchOffset) * Math.min(1, dt * 12);
 
   // 달리기: 배터리 소모 증가
