@@ -134,9 +134,12 @@ function drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult) {
 }
 
 function drawScene(ctx) {
-  const lvl      = { fogDist: 12, ambMin: 0.38, ceilAmbMin: 0.32 };
+  const isShowcase = typeof showcaseMode !== 'undefined' && showcaseMode;
+  const lvl      = isShowcase
+    ? { fogDist: 999, ambMin: 1.0, ceilAmbMin: 1.0 }
+    : { fogDist: 12,  ambMin: 0.38, ceilAmbMin: 0.32 };
   const FOG_DIST = lvl.fogDist;
-  const lightMult = 1;
+  const lightMult = isShowcase ? 2.0 : 1;
 
   // 정신력 효과: 카메라 흔들림
   const sanity    = game.sanity !== undefined ? game.sanity : 100;
