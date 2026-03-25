@@ -52,9 +52,8 @@ function generateCell(gx, gy) {
         oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
         const x0=nsx*9+ox, x1=x0+rw-1, y0=nsy*9+oy, y1=y0+rh-1;
         if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
-          // 내부 기둥: 3칸 간격, 가장자리 제외
-          const lx=gx-x0, ly=gy-y0;
-          if (lx>0 && ly>0 && lx<rw-1 && ly<rh-1 && lx%3===0 && ly%3===0) return 1;
+          // 기둥: 전역 4칸 간격, 가장자리 1칸 안쪽
+          if (gx>x0 && gx<x1 && gy>y0 && gy<y1 && gx%4===2 && gy%4===2) return 1;
           return 0;
         }
 
