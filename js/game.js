@@ -4,6 +4,7 @@ const ctx    = canvas.getContext('2d');
 
 let game = { px:0.5, py:0.5, angle:0, battery:100, sanity:100, level:0, running:false, dead:false };
 let keys = {}, last = 0, gameTime = 0;
+let loopStarted = false;
 let bobPhase = 0, bobAmp = 0, pitch = 0, crouchOffset = 0;
 let msgTimer = 0;
 let isMoving = false;
@@ -20,16 +21,35 @@ function hideMsg() {
 function startGame() {
   document.getElementById('ss').style.display = 'none';
   hideMsg();
+  clearKeys();
   chunkCache.clear();
+  showcaseMode = false;
   if (typeof exploredCells !== 'undefined') exploredCells.clear();
   if (typeof activeEntities !== 'undefined') activeEntities.length = 0;
   if (typeof pickedItems !== 'undefined') pickedItems.clear();
   game = { px:0.5, py:0.5, angle:0, battery:100, sanity:100, running:true, dead:false };
   bobPhase=0; bobAmp=0; pitch=0; crouchOffset=0; last=0; gameTime=0;
   whisperTimer=0; isMoving=false;
-initRenderer(ctx);
+  initRenderer(ctx);
   initAudio && initAudio();
-  requestAnimationFrame(loop);
+  if (!loopStarted) { loopStarted = true; requestAnimationFrame(loop); }
+}
+
+function startShowcase() {
+  document.getElementById('ss').style.display = 'none';
+  hideMsg();
+  clearKeys();
+  showcaseMode = true;
+  _showcaseMap = null; // 맵 재생성
+  if (typeof activeEntities !== 'undefined') activeEntities.length = 0;
+  // 입구방 중앙(33.5, 20.5), 서쪽(기둥방) 방향
+  game = { px:33.5, py:20.5, angle:Math.PI, battery:100, sanity:100, running:true, dead:false };
+  bobPhase=0; bobAmp=0; pitch=0; crouchOffset=0; last=0; gameTime=0;
+  whisperTimer=0; isMoving=false;
+  initRenderer(ctx);
+  initAudio && initAudio();
+  if (!loopStarted) { loopStarted = true; requestAnimationFrame(loop); }
+  setTimeout(() => showMsg('← 기둥방 &nbsp;&nbsp;&nbsp; 얇은벽방 →<br><small style="opacity:0.7">ESC: 메뉴로 돌아가기</small>', 10), 200);
 }
 
 const GAME_KEYS = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D','Shift','Control']);
@@ -108,11 +128,11 @@ function loop(ts) {
 // 엔티티
     updateEntities && updateEntities(dt, game.px, game.py);
 
-    // 배터리 감소
-    game.battery = Math.max(0, game.battery - 0.2*dt);
-
-    // 정신력 계산
-    updateSanity(dt);
+    // 배터리/정신력: 쇼케이스 모드에서는 비활성화
+    if (!showcaseMode) {
+      game.battery = Math.max(0, game.battery - 0.2*dt);
+      updateSanity(dt);
+    }
 
     // 메시지 타이머
     if (msgTimer > 0) {
@@ -158,6 +178,15 @@ function updateSanity(dt) {
 
 // ── 입력 ───────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+  // ESC: 게임/쇼케이스 → 메뉴
+  if (e.key === 'Escape' && game.running) {
+    game.running = false;
+    showcaseMode = false;
+    clearKeys();
+    document.getElementById('ss').style.display = 'flex';
+    try { document.exitPointerLock(); } catch(_) {}
+    return;
+  }
   keys[e.key] = true;
   if (GAME_KEYS.has(e.key)) e.preventDefault();
 });

@@ -137,6 +137,7 @@ function getChunk(cx, cy) {
 }
 
 function getCell(gx, gy) {
+  if (showcaseMode) return getShowcaseCell(gx, gy);
   const cx = Math.floor(gx / CHUNK), cy = Math.floor(gy / CHUNK);
   const lx = ((gx % CHUNK) + CHUNK) % CHUNK, ly = ((gy % CHUNK) + CHUNK) % CHUNK;
   return getChunk(cx, cy)[ly][lx];
@@ -149,4 +150,72 @@ function isWall(wx, wy) {
 
 function findSafeStart() {
   return { x: 0.5, y: 0.5 };
+}
+
+// ── 쇼케이스 맵 ────────────────────────────────────────────────
+let showcaseMode = false;
+let _showcaseMap = null;
+const SHOWCASE_W = 62, SHOWCASE_H = 42;
+
+function buildShowcaseMap() {
+  const W = SHOWCASE_W, H = SHOWCASE_H;
+  // 전체를 벽으로 초기화
+  const m = Array.from({length: H}, () => new Array(W).fill(1));
+  function fill(x0, y0, x1, y1, v) {
+    for (let y = Math.max(0,y0); y <= Math.min(H-1,y1); y++)
+      for (let x = Math.max(0,x0); x <= Math.min(W-1,x1); x++)
+        m[y][x] = v;
+  }
+
+  // ── 섹션 1: 대형 기둥방 (x:2-26, y:2-39) ─────────────────
+  fill(2, 2, 26, 39, 0);
+  // 1x1 기둥: 4칸 간격, 복도 구간(y=17-23) 제외
+  for (let py = 6; py <= 36; py += 4) {
+    if (py >= 17 && py <= 23) continue;
+    for (let px = 6; px <= 22; px += 4) m[py][px] = 1;
+  }
+
+  // ── 입구방 (플레이어 스폰) (x:30-37, y:16-24) ─────────────
+  fill(30, 16, 37, 24, 0);
+  // 기둥방 ↔ 입구 복도
+  fill(26, 18, 30, 22, 0);
+  // 입구 ↔ 얇은벽방 복도
+  fill(37, 18, 40, 22, 0);
+
+  // ── 섹션 2: 얇은 벽 구역 (x:40-60, y:2-39) ───────────────
+  fill(40, 2, 60, 39, 0);
+
+  // 얇은 수직벽 (type 2) at x=45 — 위아래 두 구역, 복도 레벨에 통로
+  for (let y = 3; y <= 38; y++) {
+    if (y >= 18 && y <= 22) continue; // 복도 레벨 통로
+    if (y >= 8  && y <= 10) continue; // 상단 통로
+    m[y][45] = 2;
+  }
+  // 얇은 수직벽 at x=53 — 다른 높이에 통로
+  for (let y = 3; y <= 38; y++) {
+    if (y >= 18 && y <= 22) continue;
+    if (y >= 30 && y <= 32) continue; // 하단 통로
+    m[y][53] = 2;
+  }
+
+  // 얇은 수평벽 (type 3) at y=13 — x=45,53 위치는 수직벽과 겹치므로 양쪽에 배치
+  for (let x = 41; x <= 60; x++) {
+    if (x === 45 || x === 53) continue; // 수직벽 위치 skip (교차 충돌 방지)
+    if (x >= 46 && x <= 48) continue;   // 통로
+    m[13][x] = 3;
+  }
+  // 얇은 수평벽 at y=27
+  for (let x = 41; x <= 60; x++) {
+    if (x === 45 || x === 53) continue;
+    if (x >= 54 && x <= 56) continue;   // 통로
+    m[27][x] = 3;
+  }
+
+  return m;
+}
+
+function getShowcaseCell(gx, gy) {
+  if (!_showcaseMap) _showcaseMap = buildShowcaseMap();
+  if (gx < 0 || gy < 0 || gx >= SHOWCASE_W || gy >= SHOWCASE_H) return 1;
+  return _showcaseMap[gy][gx];
 }
