@@ -166,6 +166,7 @@ document.addEventListener('keyup', e => { keys[e.key] = false; });
 // 포커스 잃거나 포인터락 해제 시 모든 키 초기화
 function clearKeys() { for (const k in keys) keys[k] = false; }
 window.addEventListener('blur', clearKeys);
+document.addEventListener('visibilitychange', () => { if (document.hidden) clearKeys(); });
 
 canvas.addEventListener('click', () => {
   if (!game.dead) canvas.requestPointerLock();
