@@ -19,8 +19,8 @@ const wallTexL0 = mkTex((tx, S) => {
 });
 const floorTexL0 = mkTex((tx, S) => {
   tx.fillStyle = '#b09276'; tx.fillRect(0, 0, S, S);
-  const T = S >> 2;
-  for (let cy = 0; cy < 4; cy++) for (let cx = 0; cx < 4; cx++) {
+  const T = S / 3 | 0; // 3열 (≈21px)
+  for (let cy = 0; cy < 3; cy++) for (let cx = 0; cx < 3; cx++) {
     const v = ((hash(cx * 37 + cy * 97, cy * 53 + cx * 71) % 20) - 10) | 0;
     tx.fillStyle = `rgba(${v > 0 ? 200 : 30},${v > 0 ? 175 : 30},${v > 0 ? 110 : 30},${Math.abs(v) / 65})`;
     tx.fillRect(cx * T, cy * T, T, T);
