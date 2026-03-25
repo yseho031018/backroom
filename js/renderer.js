@@ -35,6 +35,38 @@ function getLightAtPoint(wx, wy, lamps) {
   return Math.min(1, total);
 }
 
+// 기둥(타입 4) 면 교차 검사 — castRay에서 재사용
+function checkPillar4(rx, ry, dx, dy, mapX, mapY) {
+  const PW = 1/3;
+  const cx = mapX + 0.5, cy = mapY + 0.5;
+  const x0 = cx - PW/2, x1 = cx + PW/2;
+  const y0 = cy - PW/2, y1 = cy + PW/2;
+  let bestT = Infinity, bestU = 0, bestSide = 0, bestWx = 0, bestWy = 0;
+  if (Math.abs(dx) > 1e-6) {
+    for (const xp of [x0, x1]) {
+      const t = (xp - rx) / dx;
+      const hy = ry + dy * t;
+      if (t > 0.001 && hy >= y0 && hy < y1 && t < bestT) {
+        let u = (hy - y0) / PW; if (dx > 0) u = 1 - u;
+        bestT = t; bestU = u; bestSide = 0; bestWx = xp; bestWy = hy;
+      }
+    }
+  }
+  if (Math.abs(dy) > 1e-6) {
+    for (const yp of [y0, y1]) {
+      const t = (yp - ry) / dy;
+      const hx = rx + dx * t;
+      if (t > 0.001 && hx >= x0 && hx < x1 && t < bestT) {
+        let u = (hx - x0) / PW; if (dy < 0) u = 1 - u;
+        bestT = t; bestU = u; bestSide = 1; bestWx = hx; bestWy = yp;
+      }
+    }
+  }
+  if (bestT < Infinity)
+    return { dist: bestT, wx: bestWx, wy: bestWy, side: bestSide, wallU: bestU };
+  return null;
+}
+
 // DDA 레이캐스팅
 function castRay(angle) {
   let rx = game.px, ry = game.py;
@@ -45,6 +77,13 @@ function castRay(angle) {
   let sdx = (dx > 0 ? mapX+1-rx : rx-mapX)*ddx;
   let sdy = (dy > 0 ? mapY+1-ry : ry-mapY)*ddy;
   let side = 0, dist = 0;
+
+  // 시작 셀이 기둥 셀이면 먼저 검사 (근접 시 사라짐 방지)
+  if (getCell(mapX, mapY) === 4) {
+    const hit = checkPillar4(rx, ry, dx, dy, mapX, mapY);
+    if (hit) return hit;
+  }
+
   for (let i = 0; i < 80; i++) {
     if (sdx < sdy) { sdx += ddx; mapX += stepX; side = 0; dist = sdx - ddx; }
     else           { sdy += ddy; mapY += stepY; side = 1; dist = sdy - ddy; }
@@ -56,35 +95,9 @@ function castRay(angle) {
       if (side === 1 && dy < 0) u = 1 - u;
       return { dist, wx: hx, wy: hy, side, wallU: u };
     }
-    // 셀 타입 4: 타일 1칸(1/3 셀) 크기 정사각형 기둥
     if (cell === 4) {
-      const PW = 1/3; // 기둥 너비 = 타일 1칸
-      const cx = mapX + 0.5, cy = mapY + 0.5;
-      const x0 = cx - PW/2, x1 = cx + PW/2;
-      const y0 = cy - PW/2, y1 = cy + PW/2;
-      let bestT = Infinity, bestU = 0, bestSide = 0, bestWx = 0, bestWy = 0;
-      if (Math.abs(dx) > 1e-6) {
-        for (const xp of [x0, x1]) {
-          const t = (xp - rx) / dx;
-          const hy = ry + dy * t;
-          if (t > 0.001 && hy >= y0 && hy < y1 && t < bestT) {
-            let u = (hy - y0) / PW; if (dx > 0) u = 1 - u;
-            bestT = t; bestU = u; bestSide = 0; bestWx = xp; bestWy = hy;
-          }
-        }
-      }
-      if (Math.abs(dy) > 1e-6) {
-        for (const yp of [y0, y1]) {
-          const t = (yp - ry) / dy;
-          const hx = rx + dx * t;
-          if (t > 0.001 && hx >= x0 && hx < x1 && t < bestT) {
-            let u = (hx - x0) / PW; if (dy < 0) u = 1 - u;
-            bestT = t; bestU = u; bestSide = 1; bestWx = hx; bestWy = yp;
-          }
-        }
-      }
-      if (bestT < Infinity)
-        return { dist: bestT, wx: bestWx, wy: bestWy, side: bestSide, wallU: bestU };
+      const hit = checkPillar4(rx, ry, dx, dy, mapX, mapY);
+      if (hit) return hit;
     }
   }
   return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
@@ -213,7 +226,7 @@ function drawScene(ctx) {
         // 각도가 클수록(정면에서 멀수록) 타원 형태로 자연스럽게 줄어듦
         const tpX = fx - game.px, tpY = fy - game.py;
         const dot = (tpX * flashFDX + tpY * flashFDY) * flashRowInv + flashZDotRow;
-        flashFC = Math.max(0, (dot - 0.93) / 0.07) * flashDistRow * 2.2;
+        flashFC = Math.max(0, (dot - 0.93) / 0.07) * flashDistRow * 1.1;
       }
       const tx = (((fx - Math.floor(fx)) * TEX)|0) & (TEX-1);
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
@@ -260,7 +273,7 @@ function drawScene(ctx) {
     const flashHBase  = flashWallOn
       ? ((ray.wx - game.px) * flashFDX + (ray.wy - game.py) * flashFDY) / corr : 0;
     const flashZfact  = flashWallOn ? flashFDZ / (WALL_SCALE * H) : 0;
-    const flashWDist  = flashWallOn ? Math.max(0, 1 - corr / 10) * 2.2 : 0;
+    const flashWDist  = flashWallOn ? Math.max(0, 1 - corr / 10) * 1.1 : 0;
 
     const segH = bot - top, texVscale = TEX / segH;
     for (let y = top; y < bot; y++) {
