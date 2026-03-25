@@ -183,7 +183,7 @@ function drawScene(ctx) {
         // 각도가 클수록(정면에서 멀수록) 타원 형태로 자연스럽게 줄어듦
         const tpX = fx - game.px, tpY = fy - game.py;
         const dot = (tpX * flashFDX + tpY * flashFDY) * flashRowInv + flashZDotRow;
-        flashFC = Math.max(0, (dot - 0.76) / 0.24) * flashDistRow * 2.2;
+        flashFC = Math.max(0, (dot - 0.88) / 0.12) * flashDistRow * 2.2;
       }
       const tx = (((fx - Math.floor(fx)) * TEX)|0) & (TEX-1);
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
@@ -241,7 +241,7 @@ function drawScene(ctx) {
       if (flashWDist > 0) {
         // tpZ (눈 기준 높이): (HALF-y)*corr/(WALL_SCALE*H), dot ≈ /corr
         const dot = flashHBase + flashZfact * (HALF - y);
-        shade = Math.min(1.6, shade + Math.max(0, (dot - 0.76) / 0.24) * flashWDist);
+        shade = Math.min(1.6, shade + Math.max(0, (dot - 0.88) / 0.12) * flashWDist);
       }
       buf[pi]  =Math.min(255,wTex[ti]  *shade)|0;
       buf[pi+1]=Math.min(255,wTex[ti+1]*shade)|0;
