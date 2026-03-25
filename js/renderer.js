@@ -164,8 +164,8 @@ function drawScene(ctx) {
           buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         } else if (tr > 200) {
-          const lampScale = lightMult;
-          buf[pi]=tr*lampScale|0; buf[pi+1]=tg*lampScale|0; buf[pi+2]=tb*lampScale|0;
+          const lampFog = Math.max(0, 1 - rowDist / FOG_DIST) * lightMult;
+          buf[pi]=tr*lampFog|0; buf[pi+1]=tg*lampFog|0; buf[pi+2]=tb*lampFog|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         }
       }
