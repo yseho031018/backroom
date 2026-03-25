@@ -20,13 +20,9 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성: 복도 + 벽 (구조물은 추후 추가)
-function generateCell(gx, gy) {
-  // 복도 (3의 배수) — 항상 열림
-  if (gx % 3 === 0 || gy % 3 === 0) return 0;
-
-  // 벽
-  return 1;
+// 개별 셀 생성: 전체 열린 공간 (구조물은 추후 추가)
+function generateCell() {
+  return 0;
 }
 
 function getChunk(cx, cy) {
