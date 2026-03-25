@@ -30,9 +30,8 @@ const floorTexL0 = mkTex((tx, S) => {
 });
 const ceilTexL0 = mkTex((tx, S) => {
   tx.fillStyle = '#8c8980'; tx.fillRect(0, 0, S, S);
-  const T = S >> 2; // 16 — 모두 동일한 정사각형 칸
-  // 균일 4×4 격자 (얇은 선)
-  for (let cy = 0; cy < 4; cy++) for (let cx = 0; cx < 4; cx++) {
+  const T = S / 3 | 0; // 3열 (≈21px)
+  for (let cy = 0; cy < 3; cy++) for (let cx = 0; cx < 3; cx++) {
     tx.strokeStyle = 'rgba(40,38,34,0.35)'; tx.lineWidth = 0.5;
     tx.strokeRect(cx*T + 0.25, cy*T + 0.25, T - 0.5, T - 0.5);
   }
