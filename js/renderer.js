@@ -161,9 +161,14 @@ function drawScene(ctx) {
     let fx = game.px + rowDist * rdx0, fy = game.py + rowDist * rdy0;
     const rowBase = sy * W * 4;
     const flashRowBase = flashlightOn ? Math.max(0, 1 - rowDist / 9) : 0;
+    // 바닥/천장 수직 편차 (HALF 기준)
+    const flashFVY = flashRowBase > 0 ? (sy - HALF) / (H * 0.42) : 0;
     for (let sx = 0; sx < W; sx++) {
       const flashFC = flashRowBase > 0
-        ? flashRowBase * Math.max(0, 1 - Math.abs(sx / W - 0.5) * 4.0) * 1.6
+        ? (() => {
+            const fh = (sx / W - 0.5) * 2.5;
+            return Math.max(0, 1 - Math.hypot(fh, flashFVY) * 2.6) * flashRowBase * 1.6;
+          })()
         : 0;
       const tx = (((fx - Math.floor(fx)) * TEX)|0) & (TEX-1);
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
@@ -204,20 +209,27 @@ function drawScene(ctx) {
     const texUi = Math.floor(ray.wallU * TEX) & (TEX-1);
     const _f2 = Math.max(0, 1 - corr / FOG_DIST); const fog = _f2 * _f2;
     const wl    = getLightAtPoint(ray.wx, ray.wy, nearLamps) * lightMult;
-    // 손전등: 중앙 원뿔 형태로 거리 기반 감쇠
-    const flashCone = (flashlightOn && corr < 12)
-      ? Math.max(0, 1 - Math.abs(x / W - 0.5) * 4.0) * Math.max(0, 1 - corr / 10) * 2.2
-      : 0;
-    let shade   = Math.min(1.6, wl * fog * (ray.side === 0 ? 1 : 0.88) + flashCone);
+    const baseShadeW = wl * fog * (ray.side === 0 ? 1 : 0.88);
+    // 손전등: 거리 감쇠 (수평은 per-pixel에서 계산)
+    const flashDistW = (flashlightOn && corr < 12)
+      ? Math.max(0, 1 - corr / 10) * 2.2 : 0;
+    const flashHX = (x / W - 0.5) * 2.5; // 수평 편차
 
     const segH = bot - top, texVscale = TEX / segH;
     for (let y = top; y < bot; y++) {
       const texVi = ((y-top) * texVscale | 0) & (TEX-1);
       const ti = (texVi * TEX + texUi) << 2;
       const pi = (y * W + x) << 2;
-      buf[pi]  =wTex[ti]  *shade|0;
-      buf[pi+1]=wTex[ti+1]*shade|0;
-      buf[pi+2]=wTex[ti+2]*shade|0;
+      let shade = baseShadeW;
+      if (flashDistW > 0) {
+        // 수직 편차: 화면 중앙(HALF) 기준
+        const flashVY = (y - HALF) / (H * 0.42);
+        const flashR = Math.hypot(flashHX, flashVY);
+        shade = Math.min(1.6, shade + Math.max(0, 1 - flashR * 2.6) * flashDistW);
+      }
+      buf[pi]  =Math.min(255,wTex[ti]  *shade)|0;
+      buf[pi+1]=Math.min(255,wTex[ti+1]*shade)|0;
+      buf[pi+2]=Math.min(255,wTex[ti+2]*shade)|0;
       buf[pi+3]=255;
     }
   }
@@ -235,9 +247,10 @@ function drawScene(ctx) {
 
   // ── 손전등 글로우 오버레이 ────────────────────────────────────
   if (flashlightOn) {
-    const flGrad = ctx.createRadialGradient(W/2, HALF, 0, W/2, HALF, W * 0.52);
-    flGrad.addColorStop(0,    'rgba(255,248,210,0.22)');
-    flGrad.addColorStop(0.35, 'rgba(255,245,200,0.08)');
+    const flR = H * 0.38;
+    const flGrad = ctx.createRadialGradient(W/2, HALF, 0, W/2, HALF, flR);
+    flGrad.addColorStop(0,    'rgba(255,248,210,0.20)');
+    flGrad.addColorStop(0.40, 'rgba(255,245,200,0.06)');
     flGrad.addColorStop(1,    'rgba(0,0,0,0)');
     ctx.fillStyle = flGrad;
     ctx.fillRect(0, 0, W, H);
