@@ -435,7 +435,7 @@ function drawScene(ctx) {
 // ── 배터리 HUD (캔버스 좌측 하단) ───────────────────────────────
 function drawBatteryHUD(ctx) {
   const pct = Math.max(0, Math.min(100, game.battery || 0));
-  const BX = 14, BY = H - 66;
+  const BX = 14, BY = H - 50;
   const BW = 44, BH = 20;
   const NW = 4,  NH = 10;
   const PAD = 3;
