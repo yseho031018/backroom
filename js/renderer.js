@@ -273,7 +273,9 @@ function drawScene(ctx) {
     const flashHBase  = flashWallOn
       ? ((ray.wx - game.px) * flashFDX + (ray.wy - game.py) * flashFDY) / corr : 0;
     const flashZfact  = flashWallOn ? flashFDZ / (WALL_SCALE * H) : 0;
-    const flashWDist  = flashWallOn ? Math.max(0, 1 - corr / 10) * 1.1 : 0;
+    // nearFade: 0.5 이하에서 급격히 감쇠 → 근접 과다 밝음 방지
+    const nearFade    = Math.min(1, (corr - 0.3) / 0.7);
+    const flashWDist  = flashWallOn ? Math.max(0, 1 - corr / 10) * nearFade * 1.1 : 0;
 
     const segH = bot - top, texVscale = TEX / segH;
     for (let y = top; y < bot; y++) {
