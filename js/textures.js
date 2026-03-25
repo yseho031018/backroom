@@ -38,8 +38,7 @@ const ceilTexL0 = mkTex((tx, S) => {
       tx.fillStyle = 'rgba(48,46,42,0.15)'; tx.fillRect(cx * T + dx, cy * T + dy, 1, 1);
     }
   }
-  // 형광등 튜브: 가로로 긴 얇은 형태
-  const pw = S / 3 | 0, ph = 6, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
+  const pw = 28, ph = 28, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
   tx.fillStyle = '#ffffff'; tx.fillRect(ox, oy, pw, ph);
 });
 
