@@ -21,7 +21,6 @@ function hideMsg() {
 
 function startGame() {
   document.getElementById('ss').style.display = 'none';
-  document.getElementById('ui').style.display = '';
   hideMsg();
   clearKeys();
   chunkCache.clear();
@@ -102,16 +101,7 @@ function move(dt) {
   if (flashlightOn) game.battery = Math.max(0, game.battery - 1.2*dt);
 }
 
-function updateUI() {
-  const sp  = Math.round(game.sanity);
-  const sb  = Math.round(sp / 12.5);
-  const sColor = sp > 60 ? '#80c080' : sp > 30 ? '#c0a040' : '#c04040';
-  document.getElementById('sanity').innerHTML =
-    `<span style="color:${sColor}">SANITY: ${'█'.repeat(sb)}${'░'.repeat(8-sb)} ${sp}%</span>`;
-
-  document.getElementById('px').textContent = Math.round(game.px);
-  document.getElementById('py').textContent = Math.round(game.py);
-}
+function updateUI() {}
 
 function loop(ts) {
   if (!last) last = ts;
@@ -183,7 +173,6 @@ document.addEventListener('keydown', e => {
     showcaseMode = false;
     clearKeys();
     document.getElementById('ss').style.display = 'flex';
-    document.getElementById('ui').style.display = 'none';
     try { document.exitPointerLock(); } catch(_) {}
     return;
   }

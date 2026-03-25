@@ -435,19 +435,19 @@ function drawScene(ctx) {
 // ── 배터리 HUD (캔버스 좌측 하단) ───────────────────────────────
 function drawBatteryHUD(ctx) {
   const pct = Math.max(0, Math.min(100, game.battery || 0));
-  const BX = 14, BY = H - 90;
-  const BW = 66, BH = 30;
-  const NW = 7,  NH = 16;
-  const PAD = 4;
+  const BX = 14, BY = H - 66;
+  const BW = 44, BH = 20;
+  const NW = 4,  NH = 10;
+  const PAD = 3;
 
   // 저배터리 깜빡임
   const blink = pct < 15 && Math.sin(gameTime * 10) < 0;
   if (blink) return;
 
-  const color = pct > 50 ? '#78c468' : pct > 20 ? '#c8a040' : '#c84040';
+  // 흰색 기본, 15% 미만이면 붉은빛
+  const color = pct < 15 ? 'rgba(220,100,100,0.92)' : 'rgba(215,212,200,0.90)';
 
   ctx.save();
-  ctx.globalAlpha = 0.90;
 
   // 대각선 줄무늬 채우기 (배터리 잔량 비례)
   const innerW = BW - PAD * 2;
@@ -460,8 +460,8 @@ function drawBatteryHUD(ctx) {
     ctx.rect(BX + PAD, BY + PAD, fillW, innerH);
     ctx.clip();
     ctx.strokeStyle = color;
-    ctx.lineWidth   = 2.5;
-    const step = 9;
+    ctx.lineWidth   = 2;
+    const step = 7;
     for (let i = -(innerH + step); i < innerW + innerH + step; i += step) {
       ctx.beginPath();
       ctx.moveTo(BX + PAD + i,          BY + PAD + innerH);
@@ -473,7 +473,7 @@ function drawBatteryHUD(ctx) {
 
   // 외곽 테두리
   ctx.strokeStyle = color;
-  ctx.lineWidth   = 3;
+  ctx.lineWidth   = 2.5;
   ctx.strokeRect(BX, BY, BW, BH);
 
   // 단자 돌기 (오른쪽)
