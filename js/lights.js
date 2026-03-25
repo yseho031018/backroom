@@ -5,9 +5,9 @@ function isLampAt(gx, gy) {
   const zx = Math.floor(gx / ZONE), zy = Math.floor(gy / ZONE);
   const zt = rand(zx, zy, 1);
 
-  const isP = zt >= 0.40 && zt < 0.46; // 형광등 방
-  // A(0~0.05) B(0.05~0.14) C(0.14~0.23) P(0.40~0.46) G(0.46~0.56) 방만
-  if (!(zt < 0.23 || isP || (zt >= 0.46 && zt < 0.56))) return false;
+  const isP = zt >= 0.36 && zt < 0.54; // 형광등 방
+  // A(0~0.03) B(0.03~0.12) C(0.12~0.21) P(0.36~0.54) G(0.54~0.64) 방만
+  if (!(zt < 0.21 || isP || (zt >= 0.54 && zt < 0.64))) return false;
 
   const lx = ((gx % ZONE) + ZONE) % ZONE;
   const ly = ((gy % ZONE) + ZONE) % ZONE;
