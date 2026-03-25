@@ -31,7 +31,7 @@ function getLightAtPoint(wx, wy, lamps) {
     const d = Math.hypot(wx - lp.x, wy - lp.y);
     if (d < 8) total += 1.6 * Math.max(0, (8 - d) / 8);
   }
-  total += 0.82 + game.battery / 100 * 0.18;
+  total += 0.22;
   return Math.min(1, total);
 }
 
@@ -244,8 +244,8 @@ function drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult) {
 function drawScene(ctx) {
   const isShowcase = typeof showcaseMode !== 'undefined' && showcaseMode;
   const lvl      = isShowcase
-    ? { fogDist: 35, ambMin: 0.65, ceilAmbMin: 0.60 }
-    : { fogDist: 12, ambMin: 0.38, ceilAmbMin: 0.32 };
+    ? { fogDist: 35, ambMin: 0.55, ceilAmbMin: 0.48 }
+    : { fogDist: 12, ambMin: 0.12, ceilAmbMin: 0.10 };
   const FOG_DIST = lvl.fogDist;
   const lightMult = isShowcase ? 1.3 : 1;
 
@@ -435,10 +435,10 @@ function drawScene(ctx) {
 // ── 배터리 HUD (캔버스 좌측 하단) ───────────────────────────────
 function drawBatteryHUD(ctx) {
   const pct = Math.max(0, Math.min(100, game.battery || 0));
-  const BX = 14, BY = H - 36;
-  const BW = 44, BH = 20;
-  const NW = 4,  NH = 10;
-  const PAD = 3;
+  const BX = 14, BY = H - 30;
+  const BW = 34, BH = 15;
+  const NW = 3,  NH = 8;
+  const PAD = 2;
 
   // 저배터리 깜빡임
   const blink = pct < 15 && Math.sin(gameTime * 10) < 0;

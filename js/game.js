@@ -95,10 +95,8 @@ function move(dt) {
   const crouchTarget = isCrouching ? -140 : 0;
   crouchOffset += (crouchTarget - crouchOffset) * Math.min(1, dt * 12);
 
-  // 달리기: 배터리 소모 증가
-  if (isSprinting && isMoving) game.battery = Math.max(0, game.battery - 0.4*dt);
   // 손전등: 배터리 소모
-  if (flashlightOn) game.battery = Math.max(0, game.battery - 1.2*dt);
+  if (flashlightOn) game.battery = Math.max(0, game.battery - 1.5*dt);
 }
 
 function updateUI() {}
@@ -119,7 +117,6 @@ function loop(ts) {
 
     // 배터리/정신력: 쇼케이스 모드에서는 비활성화
     if (!showcaseMode) {
-      game.battery = Math.max(0, game.battery - 0.2*dt);
       updateSanity(dt);
     }
 
