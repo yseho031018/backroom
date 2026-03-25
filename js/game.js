@@ -21,6 +21,7 @@ function hideMsg() {
 
 function startGame() {
   document.getElementById('ss').style.display = 'none';
+  document.getElementById('ui').style.display = '';
   hideMsg();
   clearKeys();
   chunkCache.clear();
@@ -38,13 +39,14 @@ function startGame() {
 
 function startShowcase() {
   document.getElementById('ss').style.display = 'none';
+  document.getElementById('ui').style.display = 'none';
   hideMsg();
   clearKeys();
   showcaseMode = true;
   _showcaseMap = null; // 맵 재생성
   if (typeof activeEntities !== 'undefined') activeEntities.length = 0;
-  // 방 중앙(22, 14), 동쪽 방향
-  game = { px:18, py:14, angle:0, battery:100, sanity:100, running:true, dead:false };
+  // 두 문 정면으로 보이도록 py=14.5 (셀 중앙)
+  game = { px:18, py:14.5, angle:0, battery:100, sanity:100, running:true, dead:false };
   bobPhase=0; bobAmp=0; pitch=0; crouchOffset=0; last=0; gameTime=0;
   whisperTimer=0; isMoving=false;
   initRenderer(ctx);
@@ -186,6 +188,7 @@ document.addEventListener('keydown', e => {
     showcaseMode = false;
     clearKeys();
     document.getElementById('ss').style.display = 'flex';
+    document.getElementById('ui').style.display = 'none';
     try { document.exitPointerLock(); } catch(_) {}
     return;
   }

@@ -63,63 +63,6 @@ function playFootstep(level) {
   src.connect(lp); lp.connect(bp); bp.connect(g); g.connect(masterGain); src.start();
 }
 
-// 멀리서 들리는 발소리 (엔티티 암시)
-function playDistantFootsteps() {
-  if (!audioCtx) return;
-  const steps = 3 + Math.floor(Math.random() * 5);
-  for (let i = 0; i < steps; i++) {
-    setTimeout(() => {
-      if (!audioCtx) return;
-      const sr = audioCtx.sampleRate;
-      const buf = audioCtx.createBuffer(1, sr * 0.09 | 0, sr);
-      const d = buf.getChannelData(0);
-      for (let j = 0; j < d.length; j++)
-        d[j] = (Math.random() * 2 - 1) * Math.exp(-j / (d.length * 0.12));
-      const src  = audioCtx.createBufferSource();
-      const filt = audioCtx.createBiquadFilter();
-      const g    = audioCtx.createGain();
-      filt.type = 'lowpass'; filt.frequency.value = 380;
-      g.gain.value = 0.06 + Math.random() * 0.05;
-      src.buffer = buf;
-      src.connect(filt); filt.connect(g); g.connect(masterGain); src.start();
-    }, i * (350 + Math.random() * 120));
-  }
-}
-
-// 문 닫히는 소리
-function playDoorSound() {
-  if (!audioCtx) return;
-  const sr  = audioCtx.sampleRate;
-  const buf = audioCtx.createBuffer(1, sr * 0.18 | 0, sr);
-  const d   = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) {
-    const t = i / d.length;
-    d[i] = (Math.random() * 2 - 1) * (1 - t) * Math.min(1, t * 12);
-  }
-  const src  = audioCtx.createBufferSource();
-  const filt = audioCtx.createBiquadFilter();
-  const g    = audioCtx.createGain();
-  filt.type = 'lowpass'; filt.frequency.value = 550;
-  g.gain.value = 0.55;
-  src.buffer = buf;
-  src.connect(filt); filt.connect(g); g.connect(masterGain); src.start();
-}
-
-// 레벨 전환 저음
-function playLevelTransition() {
-  if (!audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const g   = audioCtx.createGain();
-  const now = audioCtx.currentTime;
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(85, now);
-  osc.frequency.exponentialRampToValueAtTime(28, now + 1.0);
-  g.gain.setValueAtTime(0.55, now);
-  g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-  osc.connect(g); g.connect(masterGain);
-  osc.start(); osc.stop(now + 1.5);
-}
-
 // 속삭임 (낮은 정신력)
 function playWhisper() {
   if (!audioCtx) return;
@@ -140,15 +83,3 @@ function playWhisper() {
   src.connect(filt); filt.connect(g); g.connect(masterGain); src.start();
 }
 
-// 아이템 획득음
-function playPickup() {
-  if (!audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const g   = audioCtx.createGain();
-  const now = audioCtx.currentTime;
-  osc.type = 'sine'; osc.frequency.value = 880;
-  g.gain.setValueAtTime(0.15, now);
-  g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-  osc.connect(g); g.connect(masterGain);
-  osc.start(); osc.stop(now + 0.4);
-}

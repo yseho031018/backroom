@@ -17,6 +17,3 @@ function getLampsNear(px, py, radius) {
   return lamps;
 }
 
-function getLampBrightness() { return 0.95; }
-function updateLampStates() {}
-function ensureLampState() {}

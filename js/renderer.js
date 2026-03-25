@@ -77,7 +77,77 @@ function checkPillar5(rx, ry, dx, dy, mapX, mapY) {
 function checkPillar6(rx, ry, dx, dy, mapX, mapY) {
   return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 2/3, 2/3);
 }
-
+// 타입 8: 중형 정사각 기둥 (2/5×2/5)
+function checkPillar8(rx, ry, dx, dy, mapX, mapY) {
+  return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 2/5, 2/5);
+}
+// 타입 9: 얇은 슬랩 칸막이 (1/8×4/5)
+function checkPillar9(rx, ry, dx, dy, mapX, mapY) {
+  return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 1/8, 4/5);
+}
+// 임의 중심 직사각형 교차 (절대 월드 좌표 cx,cy 기준)
+function checkRect(rx, ry, dx, dy, cx, cy, pw, ph) {
+  const x0 = cx - pw/2, x1 = cx + pw/2;
+  const y0 = cy - ph/2, y1 = cy + ph/2;
+  let bestT = Infinity, bestU = 0, bestSide = 0, bestWx = 0, bestWy = 0;
+  if (Math.abs(dx) > 1e-6) {
+    for (const xp of [x0, x1]) {
+      const t = (xp - rx) / dx;
+      const hy = ry + dy * t;
+      if (t > 0.001 && hy >= y0 && hy < y1 && t < bestT) {
+        let u = (hy - y0) / ph; if (dx > 0) u = 1 - u;
+        bestT = t; bestU = u; bestSide = 0; bestWx = xp; bestWy = hy;
+      }
+    }
+  }
+  if (Math.abs(dy) > 1e-6) {
+    for (const yp of [y0, y1]) {
+      const t = (yp - ry) / dy;
+      const hx = rx + dx * t;
+      if (t > 0.001 && hx >= x0 && hx < x1 && t < bestT) {
+        let u = (hx - x0) / pw; if (dy < 0) u = 1 - u;
+        bestT = t; bestU = u; bestSide = 1; bestWx = hx; bestWy = yp;
+      }
+    }
+  }
+  if (bestT < Infinity)
+    return { dist: bestT, wx: bestWx, wy: bestWy, side: bestSide, wallU: bestU };
+  return null;
+}
+// 타입 13: ㄴ자형 — 왼쪽 세로 + 아래 가로
+function checkPillarL(rx, ry, dx, dy, mapX, mapY) {
+  const h1 = checkRect(rx, ry, dx, dy, mapX+0.14, mapY+0.50, 0.14, 0.86);
+  const h2 = checkRect(rx, ry, dx, dy, mapX+0.50, mapY+0.86, 0.86, 0.14);
+  if (!h1 && !h2) return null;
+  if (!h1) return h2; if (!h2) return h1;
+  return h1.dist < h2.dist ? h1 : h2;
+}
+// 타입 14: ㄱ자형 — 오른쪽 세로 + 위 가로
+function checkPillarG(rx, ry, dx, dy, mapX, mapY) {
+  const h1 = checkRect(rx, ry, dx, dy, mapX+0.86, mapY+0.50, 0.14, 0.86);
+  const h2 = checkRect(rx, ry, dx, dy, mapX+0.50, mapY+0.14, 0.86, 0.14);
+  if (!h1 && !h2) return null;
+  if (!h1) return h2; if (!h2) return h1;
+  return h1.dist < h2.dist ? h1 : h2;
+}
+// 타입 15: ㄷ자형 — 왼쪽 세로 + 위 가로 + 아래 가로 (오른쪽 개방)
+function checkPillarD(rx, ry, dx, dy, mapX, mapY) {
+  const h1 = checkRect(rx, ry, dx, dy, mapX+0.14, mapY+0.50, 0.14, 0.86);
+  const h2 = checkRect(rx, ry, dx, dy, mapX+0.50, mapY+0.14, 0.86, 0.14);
+  const h3 = checkRect(rx, ry, dx, dy, mapX+0.50, mapY+0.86, 0.86, 0.14);
+  let best = h1;
+  if (h2 && (!best || h2.dist < best.dist)) best = h2;
+  if (h3 && (!best || h3.dist < best.dist)) best = h3;
+  return best;
+}
+// 타입 16: 십자형 — 가로 슬랩 + 세로 슬랩 교차
+function checkPillarX(rx, ry, dx, dy, mapX, mapY) {
+  const h1 = checkRect(rx, ry, dx, dy, mapX+0.50, mapY+0.50, 0.86, 0.14);
+  const h2 = checkRect(rx, ry, dx, dy, mapX+0.50, mapY+0.50, 0.14, 0.86);
+  if (!h1 && !h2) return null;
+  if (!h1) return h2; if (!h2) return h1;
+  return h1.dist < h2.dist ? h1 : h2;
+}
 // DDA 레이캐스팅
 function castRay(angle) {
   let rx = game.px, ry = game.py;
@@ -91,9 +161,15 @@ function castRay(angle) {
 
   // 시작 셀이 기둥 셀이면 먼저 검사 (근접 시 사라짐 방지)
   const _startCell = getCell(mapX, mapY);
-  if (_startCell === 4) { const h = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
-  if (_startCell === 5) { const h = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
-  if (_startCell === 6) { const h = checkPillar6(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+  if (_startCell === 4)  { const h = checkPillar4(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 5)  { const h = checkPillar5(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 6)  { const h = checkPillar6(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 8)  { const h = checkPillar8(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 9)  { const h = checkPillar9(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 13) { const h = checkPillarL(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 14) { const h = checkPillarG(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 15) { const h = checkPillarD(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
+  if (_startCell === 16) { const h = checkPillarX(rx,ry,dx,dy,mapX,mapY);  if (h) return h; }
 
   for (let i = 0; i < 80; i++) {
     if (sdx < sdy) { sdx += ddx; mapX += stepX; side = 0; dist = sdx - ddx; }
@@ -106,9 +182,15 @@ function castRay(angle) {
       if (side === 1 && dy < 0) u = 1 - u;
       return { dist, wx: hx, wy: hy, side, wallU: u };
     }
-    if (cell === 4) { const hit = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
-    if (cell === 5) { const hit = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
-    if (cell === 6) { const hit = checkPillar6(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
+    if (cell === 4)  { const h = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 5)  { const h = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 6)  { const h = checkPillar6(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 8)  { const h = checkPillar8(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 9)  { const h = checkPillar9(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 13) { const h = checkPillarL(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 14) { const h = checkPillarG(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 15) { const h = checkPillarD(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+    if (cell === 16) { const h = checkPillarX(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
   }
   return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
 }
@@ -184,7 +266,6 @@ function drawScene(ctx) {
   const flashFDZ = _flashPDZ / _flashLen;
 
   const nearLamps  = getLampsNear(game.px, game.py, 8);
-  nearLamps.forEach(ensureLampState);
   const lightAhead = getLightAtPoint(
     game.px + Math.cos(game.angle)*3,
     game.py + Math.sin(game.angle)*3,
@@ -242,12 +323,7 @@ function drawScene(ctx) {
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
       const ti = (ty * TEX + tx) << 2;
       const pi = rowBase + sx * 4;
-      // 타입 7: 피트(구멍) — 바닥을 거의 검정으로 렌더, 깊이감 연출
-      if (isFloor && getCell(Math.floor(fx), Math.floor(fy)) === 7) {
-        const pitShade = Math.max(0, fog * 0.18); // 주변 밝기를 아주 약하게만 반영
-        buf[pi]=12*pitShade|0; buf[pi+1]=10*pitShade|0; buf[pi+2]=8*pitShade|0;
-        buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
-      }
+
       let tr = texData[ti], tg = texData[ti+1], tb = texData[ti+2];
       if (!isFloor) {
         if (getCell(Math.floor(fx), Math.floor(fy)) === 1) {
@@ -310,15 +386,6 @@ function drawScene(ctx) {
       buf[pi+3]=255;
     }
   }
-
-  // ── STEP 3: 스프라이트 (엔티티 + 아이템) ────────────────────
-  const sprites = [];
-  // 엔티티
-  if (typeof activeEntities !== 'undefined') {
-    for (const e of activeEntities)
-      sprites.push({ x: e.x, y: e.y, tex: entityTex, alpha: e.alpha, scale: 1.0, yOff: 0.5 });
-  }
-  drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult);
 
   ctx.putImageData(_imgData, 0, 0);
 
