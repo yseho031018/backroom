@@ -38,8 +38,10 @@ const ceilTexL0 = mkTex((tx, S) => {
       tx.fillStyle = 'rgba(48,46,42,0.15)'; tx.fillRect(cx * T + dx, cy * T + dy, 1, 1);
     }
   }
-  const pw = 20, ph = 20, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
-  tx.fillStyle = 'rgba(230,228,200,0.25)'; tx.fillRect(ox - 3, oy - 3, pw + 6, ph + 6);
-  tx.fillStyle = '#ffffff'; tx.fillRect(ox, oy, pw, ph);
+  const pw = 22, ph = 22, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
+  tx.fillStyle = 'rgba(255,255,240,0.12)'; tx.fillRect(ox - 10, oy - 10, pw + 20, ph + 20);
+  tx.fillStyle = 'rgba(255,255,240,0.25)'; tx.fillRect(ox - 6,  oy - 6,  pw + 12, ph + 12);
+  tx.fillStyle = 'rgba(255,255,245,0.55)'; tx.fillRect(ox - 3,  oy - 3,  pw + 6,  ph + 6);
+  tx.fillStyle = '#ffffff';                tx.fillRect(ox, oy, pw, ph);
 });
 

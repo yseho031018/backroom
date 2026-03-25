@@ -29,7 +29,7 @@ function getLightAtPoint(wx, wy, lamps) {
   let total = 0;
   for (const lp of lamps) {
     const d = Math.hypot(wx - lp.x, wy - lp.y);
-    if (d < 6) total += 0.95 * Math.max(0, (6 - d) / 6) * 0.5;
+    if (d < 8) total += 1.4 * Math.max(0, (8 - d) / 8);
   }
   total += 0.72 + game.battery / 100 * 0.18;
   return Math.min(1, total);
@@ -167,8 +167,8 @@ function drawScene(ctx) {
           buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         } else if (tr > 200) {
-          const lampFog = _f1 * _f1 * lightMult;
-          buf[pi]=tr*lampFog|0; buf[pi+1]=tg*lampFog|0; buf[pi+2]=tb*lampFog|0;
+          const lampFog = Math.min(1, _f1 * 1.6) * lightMult;
+          buf[pi]=Math.min(255,tr*lampFog*1.4)|0; buf[pi+1]=Math.min(255,tg*lampFog*1.4)|0; buf[pi+2]=Math.min(255,tb*lampFog*1.3)|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         }
       }
