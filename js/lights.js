@@ -13,12 +13,13 @@ function isLampAt(gx, gy) {
   const ly = ((gy % ZONE) + ZONE) % ZONE;
 
   if (isP) {
-    // 형광등 방: 4사분면에 각 1개 — 균등하게 퍼진 4개 등
+    // 기둥이 짝수(2,4,6)에 있으므로 램프는 홀수(1,3 / 5,7) 좌표만 사용
+    const o = (r) => rand(zx, zy, r) < 0.5 ? 1 : 3;
     const qs = [
-      [1 + (rand(zx, zy, 30) * 3 | 0), 1 + (rand(zx, zy, 31) * 3 | 0)], // 좌상
-      [5 + (rand(zx, zy, 32) * 3 | 0), 1 + (rand(zx, zy, 33) * 3 | 0)], // 우상
-      [1 + (rand(zx, zy, 34) * 3 | 0), 5 + (rand(zx, zy, 35) * 3 | 0)], // 좌하
-      [5 + (rand(zx, zy, 36) * 3 | 0), 5 + (rand(zx, zy, 37) * 3 | 0)], // 우하
+      [o(30),     o(31)    ], // 좌상 (1or3, 1or3)
+      [4 + o(32), o(33)    ], // 우상 (5or7, 1or3)
+      [o(34),     4 + o(35)], // 좌하 (1or3, 5or7)
+      [4 + o(36), 4 + o(37)], // 우하 (5or7, 5or7)
     ];
     return qs.some(([qx, qy]) => lx === qx && ly === qy);
   }
