@@ -70,8 +70,8 @@ function move(dt) {
   if (isMoving) bobPhase += 1.5 * dt * bobSpeed;
   bobAmp = isMoving ? Math.min(1, bobAmp+dt*12) : Math.max(0, bobAmp-dt*9);
 
-  // 앉기: HALF 증가 → 전체 화면이 아래로 이동
-  const crouchTarget = isCrouching ? 70 : 0;
+  // 앉기: HALF 감소 → 시선이 아래로
+  const crouchTarget = isCrouching ? -70 : 0;
   crouchOffset += (crouchTarget - crouchOffset) * Math.min(1, dt * 12);
 
   // 달리기: 배터리 소모 증가
