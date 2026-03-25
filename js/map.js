@@ -20,8 +20,11 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성: 전체 열린 공간 (구조물은 추후 추가)
-function generateCell() {
+// 개별 셀 생성
+function generateCell(gx, gy) {
+  // 4칸 격자마다 기둥 배치 → 격자 사이 3칸 항상 열림, 길 막힘 없음
+  // gx%4===2, gy%4===2 → 스폰(0,0)과 멀리 떨어진 위치부터 시작
+  if (gx % 4 === 2 && gy % 4 === 2 && rand(gx, gy, 42) < 0.55) return 4;
   return 0;
 }
 
