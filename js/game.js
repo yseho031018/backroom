@@ -42,8 +42,8 @@ function startShowcase() {
   showcaseMode = true;
   _showcaseMap = null; // 맵 재생성
   if (typeof activeEntities !== 'undefined') activeEntities.length = 0;
-  // 입구방 중앙(33.5, 20.5), 서쪽(기둥방) 방향
-  game = { px:33.5, py:20.5, angle:Math.PI, battery:100, sanity:100, running:true, dead:false };
+  // 방 중앙(22, 14), 동쪽 방향
+  game = { px:22, py:14, angle:0, battery:100, sanity:100, running:true, dead:false };
   bobPhase=0; bobAmp=0; pitch=0; crouchOffset=0; last=0; gameTime=0;
   whisperTimer=0; isMoving=false;
   initRenderer(ctx);
