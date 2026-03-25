@@ -24,8 +24,8 @@ const floorTexL0 = mkTex((tx, S) => {
     const v = ((hash(cx * 37 + cy * 97, cy * 53 + cx * 71) % 20) - 10) | 0;
     tx.fillStyle = `rgba(${v > 0 ? 200 : 30},${v > 0 ? 175 : 30},${v > 0 ? 110 : 30},${Math.abs(v) / 65})`;
     tx.fillRect(cx * T, cy * T, T, T);
-    tx.strokeStyle = 'rgba(65,52,35,0.45)'; tx.lineWidth = 1;
-    tx.strokeRect(cx * T + 0.5, cy * T + 0.5, T - 1, T - 1);
+    tx.strokeStyle = 'rgba(65,52,35,0.25)'; tx.lineWidth = 0.5;
+    tx.strokeRect(cx * T + 0.25, cy * T + 0.25, T - 0.5, T - 0.5);
   }
 });
 const ceilTexL0 = mkTex((tx, S) => {
@@ -33,8 +33,8 @@ const ceilTexL0 = mkTex((tx, S) => {
   const T = S >> 2; // 16 — 모두 동일한 정사각형 칸
   // 균일 4×4 격자 (얇은 선)
   for (let cy = 0; cy < 4; cy++) for (let cx = 0; cx < 4; cx++) {
-    tx.strokeStyle = 'rgba(40,38,34,0.7)'; tx.lineWidth = 0.5;
-    tx.strokeRect(cx*T + 0.5, cy*T + 0.5, T - 1, T - 1);
+    tx.strokeStyle = 'rgba(40,38,34,0.35)'; tx.lineWidth = 0.5;
+    tx.strokeRect(cx*T + 0.25, cy*T + 0.25, T - 0.5, T - 0.5);
   }
   // 램프: (1,1) 칸 안쪽 1px 여백
   tx.fillStyle = '#ffffff'; tx.fillRect(T + 1, T + 1, T - 2, T - 2);
