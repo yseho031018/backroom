@@ -37,8 +37,8 @@ function generateCell(gx, gy) {
       const oy = 1 + (rand(nlx, nly, 37) * Math.max(1, 16 - rh) | 0);
       const x0=nlx*18+ox, x1=x0+rw-1, y0=nly*18+oy, y1=y0+rh-1;
       if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
-        // 기둥: 전역 4칸 간격, 가장자리 1칸 안쪽
-        if (gx>x0 && gx<x1 && gy>y0 && gy<y1 && gx%4===0 && gy%4===0) return 1;
+        // 기둥: 전역 6칸 간격 (≡1 mod 3 → 복도와 절대 겹치지 않음)
+        if (gx>x0 && gx<x1 && gy>y0 && gy<y1 && gx%6===1 && gy%6===1) return 1;
         return 0;
       }
     }
