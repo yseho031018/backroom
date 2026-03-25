@@ -49,7 +49,6 @@ function startShowcase() {
   initRenderer(ctx);
   initAudio && initAudio();
   if (!loopStarted) { loopStarted = true; requestAnimationFrame(loop); }
-  setTimeout(() => showMsg('← 기둥방 &nbsp;&nbsp;&nbsp; 얇은벽방 →<br><small style="opacity:0.7">ESC: 메뉴로 돌아가기</small>', 10), 200);
 }
 
 const GAME_KEYS = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D','Shift','Control']);
