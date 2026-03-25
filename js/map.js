@@ -32,10 +32,9 @@ function generateCell(gx, gy) {
     return 0; // 열린 방
   }
 
-  // ② 복도 (3의 배수 격자선)
+  // ② 복도 (3의 배수 격자선) — 항상 열림으로 연결 보장
   const cx = gx % 3 === 0, cy = gy % 3 === 0;
-  if (cx && cy) return 0;                               // 교차점 항상 열림
-  if (cx || cy) return rand(gx, gy, 1) < 0.7 ? 0 : 1; // 복도 (70% 열림)
+  if (cx || cy) return 0;
 
   // ③ 그 외 → 벽
   return 1;
