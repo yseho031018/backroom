@@ -37,8 +37,12 @@ function generateCell(gx, gy) {
       const oy = 1 + (rand(nlx, nly, 37) * Math.max(1, 16 - rh) | 0);
       const x0=nlx*18+ox, x1=x0+rw-1, y0=nly*18+oy, y1=y0+rh-1;
       if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
-        // 기둥: 전역 4칸 간격 (≡1 mod 3 → 복도와 절대 겹치지 않음)
-        if (gx>x0 && gx<x1 && gy>y0 && gy<y1 && gx%3===1 && gy%3===1) return 1;
+        if (gx>x0 && gx<x1 && gy>y0 && gy<y1) {
+          if (gx%3===1 && gy%3===1) return 1; // 기둥
+          // 기둥 사이 얇은 벽 (복도 위치 gx%3===0 은 항상 열림)
+          if (gx%3===2 && gy%3===1 && rand(gx, gy, 52) < 0.6) return 2; // 얇은 수직벽
+          if (gx%3===1 && gy%3===2 && rand(gx, gy, 53) < 0.6) return 3; // 얇은 수평벽
+        }
         return 0;
       }
     }
@@ -139,7 +143,8 @@ function getCell(gx, gy) {
 }
 
 function isWall(wx, wy) {
-  return getCell(Math.floor(wx), Math.floor(wy)) === 1;
+  const c = getCell(Math.floor(wx), Math.floor(wy));
+  return c === 1 || c === 2 || c === 3;
 }
 
 function findSafeStart() {

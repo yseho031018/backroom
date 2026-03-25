@@ -35,7 +35,7 @@ function getLightAtPoint(wx, wy, lamps) {
   return Math.min(1, total);
 }
 
-// DDA 레이캐스팅
+// DDA 레이캐스팅 (셀 1=전체벽, 2=얇은수직벽, 3=얇은수평벽)
 function castRay(angle) {
   let rx = game.px, ry = game.py;
   const dx = Math.cos(angle), dy = Math.sin(angle);
@@ -48,12 +48,33 @@ function castRay(angle) {
   for (let i = 0; i < 80; i++) {
     if (sdx < sdy) { sdx += ddx; mapX += stepX; side = 0; dist = sdx - ddx; }
     else           { sdy += ddy; mapY += stepY; side = 1; dist = sdy - ddy; }
-    if (getCell(mapX, mapY) === 1) {
+    const cell = getCell(mapX, mapY);
+    if (cell === 1) {
       const hx = rx + dx*dist, hy = ry + dy*dist;
       let u = side === 0 ? (hy - Math.floor(hy)) : (hx - Math.floor(hx));
       if (side === 0 && dx > 0) u = 1 - u;
       if (side === 1 && dy < 0) u = 1 - u;
       return { dist, wx: hx, wy: hy, side, wallU: u };
+    }
+    if (cell === 2 && Math.abs(dx) > 1e-6) {
+      // 얇은 수직벽: x = mapX + 0.5 평면과 교차
+      const t = (mapX + 0.5 - rx) / dx;
+      const hy = ry + dy * t;
+      if (t > 0.001 && hy >= mapY && hy < mapY + 1) {
+        let u = hy - Math.floor(hy);
+        if (dx > 0) u = 1 - u;
+        return { dist: t, wx: mapX + 0.5, wy: hy, side: 0, wallU: u };
+      }
+    }
+    if (cell === 3 && Math.abs(dy) > 1e-6) {
+      // 얇은 수평벽: y = mapY + 0.5 평면과 교차
+      const t = (mapY + 0.5 - ry) / dy;
+      const hx = rx + dx * t;
+      if (t > 0.001 && hx >= mapX && hx < mapX + 1) {
+        let u = hx - Math.floor(hx);
+        if (dy < 0) u = 1 - u;
+        return { dist: t, wx: hx, wy: mapY + 0.5, side: 1, wallU: u };
+      }
     }
   }
   return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
@@ -163,7 +184,7 @@ function drawScene(ctx) {
       const pi = rowBase + sx * 4;
       let tr = texData[ti], tg = texData[ti+1], tb = texData[ti+2];
       if (!isFloor) {
-        if (isWall(fx, fy)) {
+        if (getCell(Math.floor(fx), Math.floor(fy)) === 1) {
           buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         } else if (tr > 200) {
