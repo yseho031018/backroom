@@ -20,57 +20,53 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성: 다양한 방 타입 + 복도 + 벽
+// 개별 셀 생성: 대형 기둥방 + 일반방 + 복도형 + 벽
 function generateCell(gx, gy) {
   // ① 복도 (3의 배수) — 항상 열림
   if (gx % 3 === 0 || gy % 3 === 0) return 0;
 
-  // ② 9×9 구역별 방 배치 (3가지 타입)
+  // ② 대형 기둥방 (18×18 구역, 10~16칸, 4칸 간격 기둥)
+  const lsx = Math.floor(gx / 18), lsy = Math.floor(gy / 18);
+  for (let dlx = -1; dlx <= 1; dlx++) {
+    for (let dly = -1; dly <= 1; dly++) {
+      const nlx = lsx + dlx, nly = lsy + dly;
+      if (rand(nlx, nly, 33) > 0.30) continue;
+      const rw = 10 + (rand(nlx, nly, 34) * 7 | 0);
+      const rh = 10 + (rand(nlx, nly, 35) * 7 | 0);
+      const ox = 1 + (rand(nlx, nly, 36) * Math.max(1, 16 - rw) | 0);
+      const oy = 1 + (rand(nlx, nly, 37) * Math.max(1, 16 - rh) | 0);
+      const x0=nlx*18+ox, x1=x0+rw-1, y0=nly*18+oy, y1=y0+rh-1;
+      if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
+        // 기둥: 전역 4칸 간격, 가장자리 1칸 안쪽
+        if (gx>x0 && gx<x1 && gy>y0 && gy<y1 && gx%4===0 && gy%4===0) return 1;
+        return 0;
+      }
+    }
+  }
+
+  // ③ 일반/복도형 방 (9×9 구역)
   const sx = Math.floor(gx / 9), sy = Math.floor(gy / 9);
   for (let dsx = -1; dsx <= 1; dsx++) {
     for (let dsy = -1; dsy <= 1; dsy++) {
       const nsx = sx + dsx, nsy = sy + dsy;
       if (rand(nsx, nsy, 7) > 0.65) continue;
-
-      const type = rand(nsx, nsy, 9);
-      let rw, rh, ox, oy;
-
-      if (type < 0.50) {
-        // 타입 A: 일반 방 (3~6)
+      const horiz = rand(nsx, nsy, 11) < 0.5;
+      let rw, rh;
+      if (rand(nsx, nsy, 9) < 0.75) {
         rw = 3 + (rand(nsx, nsy, 2) * 4 | 0);
         rh = 3 + (rand(nsx, nsy, 3) * 4 | 0);
-        ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 8 - rw) | 0);
-        oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
-        const x0=nsx*9+ox, x1=x0+rw-1, y0=nsy*9+oy, y1=y0+rh-1;
-        if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) return 0;
-
-      } else if (type < 0.80) {
-        // 타입 B: 대형 방 (6~10), 내부 기둥
-        rw = 6 + (rand(nsx, nsy, 2) * 5 | 0);
-        rh = 6 + (rand(nsx, nsy, 3) * 5 | 0);
-        ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 8 - rw) | 0);
-        oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
-        const x0=nsx*9+ox, x1=x0+rw-1, y0=nsy*9+oy, y1=y0+rh-1;
-        if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
-          // 기둥: 전역 4칸 간격, 가장자리 1칸 안쪽
-          if (gx>x0 && gx<x1 && gy>y0 && gy<y1 && gx%4===2 && gy%4===2) return 1;
-          return 0;
-        }
-
       } else {
-        // 타입 C: 복도형 방 (길고 좁음)
-        const horiz = rand(nsx, nsy, 11) < 0.5;
         rw = horiz ? 6 + (rand(nsx, nsy, 2) * 4 | 0) : 2;
         rh = horiz ? 2 : 6 + (rand(nsx, nsy, 3) * 4 | 0);
-        ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 8 - rw) | 0);
-        oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
-        const x0=nsx*9+ox, x1=x0+rw-1, y0=nsy*9+oy, y1=y0+rh-1;
-        if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) return 0;
       }
+      const ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 8 - rw) | 0);
+      const oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
+      const x0=nsx*9+ox, x1=x0+rw-1, y0=nsy*9+oy, y1=y0+rh-1;
+      if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) return 0;
     }
   }
 
-  // ③ 벽
+  // ④ 벽
   return 1;
 }
 
