@@ -242,6 +242,12 @@ function drawScene(ctx) {
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
       const ti = (ty * TEX + tx) << 2;
       const pi = rowBase + sx * 4;
+      // 타입 7: 피트(구멍) — 바닥을 거의 검정으로 렌더, 깊이감 연출
+      if (isFloor && getCell(Math.floor(fx), Math.floor(fy)) === 7) {
+        const pitShade = Math.max(0, fog * 0.18); // 주변 밝기를 아주 약하게만 반영
+        buf[pi]=12*pitShade|0; buf[pi+1]=10*pitShade|0; buf[pi+2]=8*pitShade|0;
+        buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
+      }
       let tr = texData[ti], tg = texData[ti+1], tb = texData[ti+2];
       if (!isFloor) {
         if (getCell(Math.floor(fx), Math.floor(fy)) === 1) {
