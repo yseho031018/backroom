@@ -166,9 +166,13 @@ function drawScene(ctx) {
         if (isWall(fx, fy)) {
           buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
-        } else if (tr > 200 && isLampAt(Math.floor(fx), Math.floor(fy))) {
-          const lampFog = Math.min(1, _f1 * 1.6) * lightMult;
-          buf[pi]=Math.min(255,tr*lampFog*1.4)|0; buf[pi+1]=Math.min(255,tg*lampFog*1.4)|0; buf[pi+2]=Math.min(255,tb*lampFog*1.3)|0;
+        } else if (tr > 200) {
+          if (isLampAt(Math.floor(fx), Math.floor(fy))) {
+            const lampFog = Math.min(1, _f1 * 1.6) * lightMult;
+            buf[pi]=Math.min(255,tr*lampFog*1.4)|0; buf[pi+1]=Math.min(255,tg*lampFog*1.4)|0; buf[pi+2]=Math.min(255,tb*lampFog*1.3)|0;
+          } else {
+            buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
+          }
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         }
       }
