@@ -20,10 +20,30 @@ function evictChunkIfNeeded() {
   }
 }
 
+// 개별 셀 생성: 방(Room) + 복도(Corridor) + 벽(Wall)
+function generateCell(gx, gy) {
+  // 9격자 기준 로컬 좌표
+  const rx = ((gx % 9) + 9) % 9;
+  const ry = ((gy % 9) + 9) % 9;
+
+  // ① 방 구역 (5×5 열린 공간, 네 모서리에 기둥)
+  if (rx >= 2 && rx <= 6 && ry >= 2 && ry <= 6) {
+    if ((rx === 2 || rx === 6) && (ry === 2 || ry === 6)) return 1; // 모서리 기둥
+    return 0; // 열린 방
+  }
+
+  // ② 복도 (3의 배수 격자선)
+  const cx = gx % 3 === 0, cy = gy % 3 === 0;
+  if (cx && cy) return 0;                               // 교차점 항상 열림
+  if (cx || cy) return rand(gx, gy, 1) < 0.7 ? 0 : 1; // 복도 (70% 열림)
+
+  // ③ 그 외 → 벽
+  return 1;
+}
+
 function getChunk(cx, cy) {
   const key = `${cx},${cy}`;
   if (chunkCache.has(key)) {
-    // LRU: 접근된 항목을 Map 끝으로 이동
     const val = chunkCache.get(key);
     chunkCache.delete(key);
     chunkCache.set(key, val);
@@ -34,14 +54,7 @@ function getChunk(cx, cy) {
     cells.push([]);
     for (let c = 0; c < CHUNK; c++) {
       const gx = cx * CHUNK + c, gy = cy * CHUNK + r;
-      const isCorridorX = (gx % 3 === 0), isCorridorY = (gy % 3 === 0);
-      if (isCorridorX && isCorridorY) {
-        cells[r].push(0);
-      } else if (isCorridorX || isCorridorY) {
-        cells[r].push(rand(gx, gy, 1) < 0.72 ? 0 : 1);
-      } else {
-        cells[r].push(rand(gx, gy) < 0.65 ? 1 : 0);
-      }
+      cells[r].push(generateCell(gx, gy));
     }
   }
   chunkCache.set(key, cells);
