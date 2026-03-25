@@ -1,8 +1,8 @@
-// ── 형광등 시스템 ──────────────────────────────────────────────
-const LAMP_CHANCE = 0.11; // 열린 셀의 약 11% 에 램프 배치
+// ── 형광등 시스템 (3격자 간격, 항상 켜짐) ─────────────────────
+const LAMP_INTERVAL = 3;
 
 function isLampAt(gx, gy) {
-  return getCell(gx, gy) === 0 && rand(gx, gy, 99) < LAMP_CHANCE;
+  return gx % LAMP_INTERVAL === 0 && gy % LAMP_INTERVAL === 0 && getCell(gx, gy) === 0;
 }
 
 function getLampsNear(px, py, radius) {

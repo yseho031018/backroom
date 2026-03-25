@@ -36,8 +36,7 @@ const ceilTexL0 = mkTex((tx, S) => {
     tx.strokeStyle = 'rgba(40,38,34,0.7)'; tx.lineWidth = 0.5;
     tx.strokeRect(cx*T + 0.5, cy*T + 0.5, T - 1, T - 1);
   }
-  // 램프: 텍스처 정중앙에 배치 (격자선이 얇아서 시각적으로 중앙 칸처럼 보임)
-  const pw = T - 2, ph = T - 2, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
-  tx.fillStyle = '#ffffff'; tx.fillRect(ox, oy, pw, ph);
+  // 램프: (1,1) 칸 안쪽 1px 여백
+  tx.fillStyle = '#ffffff'; tx.fillRect(T + 1, T + 1, T - 2, T - 2);
 });
 
