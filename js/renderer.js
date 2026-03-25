@@ -56,6 +56,36 @@ function castRay(angle) {
       if (side === 1 && dy < 0) u = 1 - u;
       return { dist, wx: hx, wy: hy, side, wallU: u };
     }
+    // 셀 타입 4: 타일 1칸(1/3 셀) 크기 정사각형 기둥
+    if (cell === 4) {
+      const PW = 1/3; // 기둥 너비 = 타일 1칸
+      const cx = mapX + 0.5, cy = mapY + 0.5;
+      const x0 = cx - PW/2, x1 = cx + PW/2;
+      const y0 = cy - PW/2, y1 = cy + PW/2;
+      let bestT = Infinity, bestU = 0, bestSide = 0, bestWx = 0, bestWy = 0;
+      if (Math.abs(dx) > 1e-6) {
+        for (const xp of [x0, x1]) {
+          const t = (xp - rx) / dx;
+          const hy = ry + dy * t;
+          if (t > 0.001 && hy >= y0 && hy < y1 && t < bestT) {
+            let u = (hy - y0) / PW; if (dx > 0) u = 1 - u;
+            bestT = t; bestU = u; bestSide = 0; bestWx = xp; bestWy = hy;
+          }
+        }
+      }
+      if (Math.abs(dy) > 1e-6) {
+        for (const yp of [y0, y1]) {
+          const t = (yp - ry) / dy;
+          const hx = rx + dx * t;
+          if (t > 0.001 && hx >= x0 && hx < x1 && t < bestT) {
+            let u = (hx - x0) / PW; if (dy < 0) u = 1 - u;
+            bestT = t; bestU = u; bestSide = 1; bestWx = hx; bestWy = yp;
+          }
+        }
+      }
+      if (bestT < Infinity)
+        return { dist: bestT, wx: bestWx, wy: bestWy, side: bestSide, wallU: bestU };
+    }
   }
   return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
 }

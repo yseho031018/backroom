@@ -54,7 +54,14 @@ function getCell(gx, gy) {
 }
 
 function isWall(wx, wy) {
-  return getCell(Math.floor(wx), Math.floor(wy)) === 1;
+  const cell = getCell(Math.floor(wx), Math.floor(wy));
+  if (cell === 1) return true;
+  if (cell === 4) {
+    // 타일 1칸(1/3 셀) 크기 기둥: 셀 중앙 ±1/6 범위
+    const lx = wx - Math.floor(wx), ly = wy - Math.floor(wy);
+    return lx >= 1/3 && lx < 2/3 && ly >= 1/3 && ly < 2/3;
+  }
+  return false;
 }
 
 function findSafeStart() {
@@ -76,8 +83,8 @@ function buildShowcaseMap() {
     for (let x = 2; x <= 41; x++)
       m[y][x] = 0;
 
-  // ── 1x1 기둥 ──────────────────────────────────────────────
-  m[14][22] = 1;
+  // ── 타일 1칸 크기 기둥 (셀 타입 4) ───────────────────────
+  m[14][22] = 4;
 
   return m;
 }
