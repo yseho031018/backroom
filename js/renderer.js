@@ -170,7 +170,7 @@ function drawScene(ctx) {
     // 손전등: row별 사전계산 (3D 내적, sqrt 절약)
     // tpLen ≈ hypot(rowDist, 0.5) — 행 내에서 거의 일정
     let flashRowInv = 0, flashZDotRow = 0, flashDistRow = 0;
-    if (flashlightOn && rowDist < 10) {
+    if (flashlightOn && isFloor && rowDist < 10) {  // 천장은 제외
       flashRowInv  = 1 / Math.hypot(rowDist, 0.5);
       // 바닥은 플레이어 아래(tpZ=-0.5), 천장은 위(tpZ=+0.5)
       flashZDotRow = (isFloor ? -0.5 : 0.5) * flashFDZ * flashRowInv;
@@ -183,7 +183,7 @@ function drawScene(ctx) {
         // 각도가 클수록(정면에서 멀수록) 타원 형태로 자연스럽게 줄어듦
         const tpX = fx - game.px, tpY = fy - game.py;
         const dot = (tpX * flashFDX + tpY * flashFDY) * flashRowInv + flashZDotRow;
-        flashFC = Math.max(0, (dot - 0.88) / 0.12) * flashDistRow * 2.2;
+        flashFC = Math.max(0, (dot - 0.93) / 0.07) * flashDistRow * 2.2;
       }
       const tx = (((fx - Math.floor(fx)) * TEX)|0) & (TEX-1);
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
@@ -241,7 +241,7 @@ function drawScene(ctx) {
       if (flashWDist > 0) {
         // tpZ (눈 기준 높이): (HALF-y)*corr/(WALL_SCALE*H), dot ≈ /corr
         const dot = flashHBase + flashZfact * (HALF - y);
-        shade = Math.min(1.6, shade + Math.max(0, (dot - 0.88) / 0.12) * flashWDist);
+        shade = Math.min(1.6, shade + Math.max(0, (dot - 0.93) / 0.07) * flashWDist);
       }
       buf[pi]  =Math.min(255,wTex[ti]  *shade)|0;
       buf[pi+1]=Math.min(255,wTex[ti+1]*shade)|0;
@@ -262,15 +262,6 @@ function drawScene(ctx) {
   ctx.putImageData(_imgData, 0, 0);
 
   // ── 손전등 글로우 오버레이 ────────────────────────────────────
-  if (flashlightOn) {
-    const flR = H * 0.38;
-    const flGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, flR);
-    flGrad.addColorStop(0,    'rgba(255,248,210,0.20)');
-    flGrad.addColorStop(0.40, 'rgba(255,245,200,0.06)');
-    flGrad.addColorStop(1,    'rgba(0,0,0,0)');
-    ctx.fillStyle = flGrad;
-    ctx.fillRect(0, 0, W, H);
-  }
 
   // ── 포스트이펙트 ──────────────────────────────────────────────
   ctx.fillStyle = _vigRadial;          ctx.fillRect(0, 0, W, H);
