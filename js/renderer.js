@@ -56,24 +56,27 @@ function castRay(angle) {
       if (side === 1 && dy < 0) u = 1 - u;
       return { dist, wx: hx, wy: hy, side, wallU: u };
     }
-    if (cell === 2 && Math.abs(dx) > 1e-6) {
-      // 얇은 수직벽: x = mapX + 0.5 평면과 교차
-      const t = (mapX + 0.5 - rx) / dx;
-      const hy = ry + dy * t;
-      if (t > 0.001 && hy >= mapY && hy < mapY + 1) {
-        let u = hy - Math.floor(hy);
-        if (dx > 0) u = 1 - u;
-        return { dist: t, wx: mapX + 0.5, wy: hy, side: 0, wallU: u };
+    if (cell === 2 || cell === 3) {
+      // 얇은 벽: x평면(수직)과 y평면(수평) 모두 검사 → 옆에서도 보임
+      let bestT = Infinity, bestU = 0, bestSide = 0, bestWx = 0, bestWy = 0;
+      if (Math.abs(dx) > 1e-6) {
+        const t = (mapX + 0.5 - rx) / dx;
+        const hy = ry + dy * t;
+        if (t > 0.001 && hy >= mapY && hy < mapY + 1 && t < bestT) {
+          let u = hy - Math.floor(hy); if (dx > 0) u = 1 - u;
+          bestT = t; bestU = u; bestSide = 0; bestWx = mapX + 0.5; bestWy = hy;
+        }
       }
-    }
-    if (cell === 3 && Math.abs(dy) > 1e-6) {
-      // 얇은 수평벽: y = mapY + 0.5 평면과 교차
-      const t = (mapY + 0.5 - ry) / dy;
-      const hx = rx + dx * t;
-      if (t > 0.001 && hx >= mapX && hx < mapX + 1) {
-        let u = hx - Math.floor(hx);
-        if (dy < 0) u = 1 - u;
-        return { dist: t, wx: hx, wy: mapY + 0.5, side: 1, wallU: u };
+      if (Math.abs(dy) > 1e-6) {
+        const t = (mapY + 0.5 - ry) / dy;
+        const hx = rx + dx * t;
+        if (t > 0.001 && hx >= mapX && hx < mapX + 1 && t < bestT) {
+          let u = hx - Math.floor(hx); if (dy < 0) u = 1 - u;
+          bestT = t; bestU = u; bestSide = 1; bestWx = hx; bestWy = mapY + 0.5;
+        }
+      }
+      if (bestT < Infinity) {
+        return { dist: bestT, wx: bestWx, wy: bestWy, side: bestSide, wallU: bestU };
       }
     }
   }
