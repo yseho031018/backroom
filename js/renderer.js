@@ -329,9 +329,9 @@ function drawScene(ctx) {
         if (getCell(Math.floor(fx), Math.floor(fy)) === 1) {
           buf[pi]=140*baseShade|0; buf[pi+1]=137*baseShade|0; buf[pi+2]=128*baseShade|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
-        } else if (tr > 200 && isLampAt(Math.floor(fx), Math.floor(fy))) {
+        } else if (isLampAt(Math.floor(fx), Math.floor(fy))) {
           const lampFog = Math.min(1, _f1 * 1.6) * lightMult;
-          buf[pi]=Math.min(255,tr*lampFog*1.4)|0; buf[pi+1]=Math.min(255,tg*lampFog*1.4)|0; buf[pi+2]=Math.min(255,tb*lampFog*1.3)|0;
+          buf[pi]=Math.min(255, 252*lampFog)|0; buf[pi+1]=Math.min(255, 248*lampFog)|0; buf[pi+2]=Math.min(255, 230*lampFog)|0;
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         }
       }

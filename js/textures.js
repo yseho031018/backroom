@@ -30,12 +30,11 @@ const floorTexL0 = mkTex((tx, S) => {
 });
 const ceilTexL0 = mkTex((tx, S) => {
   tx.fillStyle = '#8c8980'; tx.fillRect(0, 0, S, S);
-  const T = S / 3 | 0; // 3열 (≈21px)
+  const T = S / 3 | 0;
   for (let cy = 0; cy < 3; cy++) for (let cx = 0; cx < 3; cx++) {
     tx.strokeStyle = 'rgba(40,38,34,0.35)'; tx.lineWidth = 0.5;
     tx.strokeRect(cx*T + 0.25, cy*T + 0.25, T - 0.5, T - 0.5);
   }
-  // 램프: (1,1) 칸 안쪽 1px 여백
-  tx.fillStyle = '#ffffff'; tx.fillRect(T + 1, T + 1, T - 2, T - 2);
+  // 램프 패널 없음 — 렌더러에서 isLampAt 위치로만 표시
 });
 
