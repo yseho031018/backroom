@@ -30,7 +30,7 @@ function generateCell(gx, gy) {
   for (let dlx = -1; dlx <= 1; dlx++) {
     for (let dly = -1; dly <= 1; dly++) {
       const nlx = lsx + dlx, nly = lsy + dly;
-      if (rand(nlx, nly, 33) > 0.30) continue;
+      if (rand(nlx, nly, 33) > 0.50) continue;
       const rw = 10 + (rand(nlx, nly, 34) * 7 | 0);
       const rh = 10 + (rand(nlx, nly, 35) * 7 | 0);
       const ox = 1 + (rand(nlx, nly, 36) * Math.max(1, 16 - rw) | 0);
@@ -59,8 +59,8 @@ function generateCell(gx, gy) {
 
       if (rtype === 0) {
         // 직사각형 방
-        const rw = 3 + (rand(nsx, nsy, 2) * 5 | 0);
-        const rh = 3 + (rand(nsx, nsy, 3) * 5 | 0);
+        const rw = 4 + (rand(nsx, nsy, 2) * 5 | 0);
+        const rh = 4 + (rand(nsx, nsy, 3) * 5 | 0);
         const ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 8 - rw) | 0);
         const oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
         const x0=bx+ox, x1=x0+rw-1, y0=by+oy, y1=y0+rh-1;
@@ -68,10 +68,10 @@ function generateCell(gx, gy) {
 
       } else if (rtype === 1) {
         // L자형 방: 세로 직사각형 + 가로 팔
-        const w1 = 2 + (rand(nsx, nsy, 2) * 3 | 0);
-        const h1 = 5 + (rand(nsx, nsy, 3) * 3 | 0);
-        const w2 = 3 + (rand(nsx, nsy, 8) * 4 | 0);
-        const h2 = 2 + (rand(nsx, nsy, 9) * 2 | 0);
+        const w1 = 3 + (rand(nsx, nsy, 2) * 3 | 0);
+        const h1 = 6 + (rand(nsx, nsy, 3) * 3 | 0);
+        const w2 = 4 + (rand(nsx, nsy, 8) * 4 | 0);
+        const h2 = 3 + (rand(nsx, nsy, 9) * 2 | 0);
         const ox = 1 + (rand(nsx, nsy, 4) * 3 | 0);
         const oy = 1 + (rand(nsx, nsy, 5) * 2 | 0);
         const x0=bx+ox, y0=by+oy;
@@ -84,8 +84,8 @@ function generateCell(gx, gy) {
         const cy = by + 3 + (rand(nsx, nsy, 5) * 3 | 0);
         const hw = 1 + (rand(nsx, nsy, 8) * 2 | 0);
         const vw = 1 + (rand(nsx, nsy, 9) * 2 | 0);
-        const hl = 3 + (rand(nsx, nsy, 6) * 3 | 0);
-        const vl = 3 + (rand(nsx, nsy, 7) * 3 | 0);
+        const hl = 4 + (rand(nsx, nsy, 6) * 3 | 0);
+        const vl = 4 + (rand(nsx, nsy, 7) * 3 | 0);
         if ((gx>=cx-hl && gx<=cx+hl && gy>=cy-hw && gy<=cy+hw) ||
             (gx>=cx-vw && gx<=cx+vw && gy>=cy-vl && gy<=cy+vl)) return 0;
 

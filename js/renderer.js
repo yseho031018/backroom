@@ -29,9 +29,9 @@ function getLightAtPoint(wx, wy, lamps) {
   let total = 0;
   for (const lp of lamps) {
     const d = Math.hypot(wx - lp.x, wy - lp.y);
-    if (d < 8) total += 1.4 * Math.max(0, (8 - d) / 8);
+    if (d < 8) total += 1.6 * Math.max(0, (8 - d) / 8);
   }
-  total += 0.72 + game.battery / 100 * 0.18;
+  total += 0.82 + game.battery / 100 * 0.18;
   return Math.min(1, total);
 }
 
@@ -127,7 +127,7 @@ function drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult) {
 }
 
 function drawScene(ctx) {
-  const lvl      = { fogDist: 12, ambMin: 0.28, ceilAmbMin: 0.22 };
+  const lvl      = { fogDist: 12, ambMin: 0.38, ceilAmbMin: 0.32 };
   const FOG_DIST = lvl.fogDist;
   const lightMult = 1;
 
@@ -171,8 +171,8 @@ function drawScene(ctx) {
     const rowDist  = camH / py2;
     const _f1 = Math.max(0, 1 - rowDist / FOG_DIST); const fog = _f1 * _f1;
     const baseShade = (isFloor
-      ? Math.max(lvl.ambMin,      lightAhead * 0.85 - rowDist * 0.025)
-      : Math.max(lvl.ceilAmbMin,  lightAhead * 0.78 - rowDist * 0.032)) * fog;
+      ? Math.max(lvl.ambMin,      lightAhead * 0.92 - rowDist * 0.020)
+      : Math.max(lvl.ceilAmbMin,  lightAhead * 0.86 - rowDist * 0.025)) * fog;
     const texData  = isFloor ? fTex : cTex;
     const stepX = rowDist * drdx / W, stepY = rowDist * drdy / W;
     let fx = game.px + rowDist * rdx0, fy = game.py + rowDist * rdy0;
