@@ -20,11 +20,42 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성
+// 개별 셀 생성 — 백룸 스타일 방 + 기둥
+const ZONE = 10; // 존 크기 (방 내부 9x9 + 1칸 경계벽)
+
 function generateCell(gx, gy) {
-  // 4칸 격자마다 기둥 배치 → 격자 사이 3칸 항상 열림, 길 막힘 없음
-  // gx%4===2, gy%4===2 → 스폰(0,0)과 멀리 떨어진 위치부터 시작
-  if (gx % 4 === 2 && gy % 4 === 2 && rand(gx, gy, 42) < 0.55) return 4;
+  const zx = Math.floor(gx / ZONE), zy = Math.floor(gy / ZONE);
+  const lx = ((gx % ZONE) + ZONE) % ZONE;
+  const ly = ((gy % ZONE) + ZONE) % ZONE;
+
+  const onEast  = lx === ZONE - 1;
+  const onSouth = ly === ZONE - 1;
+
+  // ── 경계벽 ──────────────────────────────────────────────
+  if (onEast || onSouth) {
+    if (onEast && onSouth) return 1; // 코너는 항상 벽
+
+    if (onEast) {
+      if (rand(zx, zy, 11) < 0.22) return 0;          // 22%: 벽 제거(대형 공간)
+      const oy = 2 + (rand(zx, zy, 12) * 4 | 0);      // 개구부 위치
+      return (ly >= oy && ly < oy + 2) ? 0 : 1;
+    }
+    // onSouth
+    if (rand(zx, zy, 13) < 0.22) return 0;
+    const ox = 2 + (rand(zx, zy, 14) * 4 | 0);
+    return (lx >= ox && lx < ox + 2) ? 0 : 1;
+  }
+
+  // ── 방 내부 기둥 ─────────────────────────────────────────
+  if (lx % 3 === 1 && ly % 3 === 1) {
+    const rt = rand(zx, zy, 99); // 방 타입
+    const prob = rt < 0.25 ? 0.65   // 25%: 기둥 밀집
+               : rt < 0.65 ? 0.35   // 40%: 보통
+               : 0.08;              // 35%: 빈 방
+    const r = rand(gx, gy, 42);
+    if (r < prob) return rand(gx, gy, 43) < 0.2 ? 5 : 4;
+  }
+
   return 0;
 }
 
