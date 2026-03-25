@@ -60,9 +60,13 @@ function isWall(wx, wy) {
   const cell = getCell(Math.floor(wx), Math.floor(wy));
   if (cell === 1) return true;
   if (cell === 4) {
-    // 타일 1칸(1/3 셀) 크기 기둥: 셀 중앙 ±1/6 범위
     const lx = wx - Math.floor(wx), ly = wy - Math.floor(wy);
     return lx >= 1/3 && lx < 2/3 && ly >= 1/3 && ly < 2/3;
+  }
+  if (cell === 5) {
+    // 1×0.5 타일 기둥: x=1/3~2/3, y=5/12~7/12
+    const lx = wx - Math.floor(wx), ly = wy - Math.floor(wy);
+    return lx >= 1/3 && lx < 2/3 && ly >= 5/12 && ly < 7/12;
   }
   return false;
 }
@@ -88,6 +92,8 @@ function buildShowcaseMap() {
 
   // ── 타일 1칸 크기 기둥 (셀 타입 4) ───────────────────────
   m[14][22] = 4;
+  // ── 1×0.5 타일 직사각형 기둥 (셀 타입 5) ─────────────────
+  m[14][26] = 5;
 
   return m;
 }

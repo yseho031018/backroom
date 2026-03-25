@@ -35,19 +35,18 @@ function getLightAtPoint(wx, wy, lamps) {
   return Math.min(1, total);
 }
 
-// 기둥(타입 4) 면 교차 검사 — castRay에서 재사용
-function checkPillar4(rx, ry, dx, dy, mapX, mapY) {
-  const PW = 1/3;
+// 직사각형 기둥 면 교차 검사 (pw: x폭, ph: y폭, 셀 중앙 기준)
+function checkPillarRect(rx, ry, dx, dy, mapX, mapY, pw, ph) {
   const cx = mapX + 0.5, cy = mapY + 0.5;
-  const x0 = cx - PW/2, x1 = cx + PW/2;
-  const y0 = cy - PW/2, y1 = cy + PW/2;
+  const x0 = cx - pw/2, x1 = cx + pw/2;
+  const y0 = cy - ph/2, y1 = cy + ph/2;
   let bestT = Infinity, bestU = 0, bestSide = 0, bestWx = 0, bestWy = 0;
   if (Math.abs(dx) > 1e-6) {
     for (const xp of [x0, x1]) {
       const t = (xp - rx) / dx;
       const hy = ry + dy * t;
       if (t > 0.001 && hy >= y0 && hy < y1 && t < bestT) {
-        let u = (hy - y0) / PW; if (dx > 0) u = 1 - u;
+        let u = (hy - y0) / ph; if (dx > 0) u = 1 - u;
         bestT = t; bestU = u; bestSide = 0; bestWx = xp; bestWy = hy;
       }
     }
@@ -57,7 +56,7 @@ function checkPillar4(rx, ry, dx, dy, mapX, mapY) {
       const t = (yp - ry) / dy;
       const hx = rx + dx * t;
       if (t > 0.001 && hx >= x0 && hx < x1 && t < bestT) {
-        let u = (hx - x0) / PW; if (dy < 0) u = 1 - u;
+        let u = (hx - x0) / pw; if (dy < 0) u = 1 - u;
         bestT = t; bestU = u; bestSide = 1; bestWx = hx; bestWy = yp;
       }
     }
@@ -65,6 +64,14 @@ function checkPillar4(rx, ry, dx, dy, mapX, mapY) {
   if (bestT < Infinity)
     return { dist: bestT, wx: bestWx, wy: bestWy, side: bestSide, wallU: bestU };
   return null;
+}
+// 타입 4: 1×1 타일 정사각형 기둥
+function checkPillar4(rx, ry, dx, dy, mapX, mapY) {
+  return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 1/3, 1/3);
+}
+// 타입 5: 1×0.5 타일 직사각형 기둥 (x폭 1타일, y깊이 0.5타일)
+function checkPillar5(rx, ry, dx, dy, mapX, mapY) {
+  return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 1/3, 1/6);
 }
 
 // DDA 레이캐스팅
@@ -79,10 +86,9 @@ function castRay(angle) {
   let side = 0, dist = 0;
 
   // 시작 셀이 기둥 셀이면 먼저 검사 (근접 시 사라짐 방지)
-  if (getCell(mapX, mapY) === 4) {
-    const hit = checkPillar4(rx, ry, dx, dy, mapX, mapY);
-    if (hit) return hit;
-  }
+  const _startCell = getCell(mapX, mapY);
+  if (_startCell === 4) { const h = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+  if (_startCell === 5) { const h = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
 
   for (let i = 0; i < 80; i++) {
     if (sdx < sdy) { sdx += ddx; mapX += stepX; side = 0; dist = sdx - ddx; }
@@ -95,10 +101,8 @@ function castRay(angle) {
       if (side === 1 && dy < 0) u = 1 - u;
       return { dist, wx: hx, wy: hy, side, wallU: u };
     }
-    if (cell === 4) {
-      const hit = checkPillar4(rx, ry, dx, dy, mapX, mapY);
-      if (hit) return hit;
-    }
+    if (cell === 4) { const hit = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
+    if (cell === 5) { const hit = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
   }
   return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
 }
