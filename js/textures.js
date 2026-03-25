@@ -38,7 +38,8 @@ const ceilTexL0 = mkTex((tx, S) => {
       tx.fillStyle = 'rgba(48,46,42,0.15)'; tx.fillRect(cx * T + dx, cy * T + dy, 1, 1);
     }
   }
-  // 격자 한 칸(T×T) 내부에 딱 맞는 램프 패널
-  tx.fillStyle = '#ffffff'; tx.fillRect(T + 1, T + 1, T - 2, T - 2);
+  // 텍스처 정중앙에 램프 패널
+  const pw = T - 2, ph = T - 2, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
+  tx.fillStyle = '#ffffff'; tx.fillRect(ox, oy, pw, ph);
 });
 
