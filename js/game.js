@@ -163,11 +163,17 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
+// 포커스 잃거나 포인터락 해제 시 모든 키 초기화
+function clearKeys() { for (const k in keys) keys[k] = false; }
+window.addEventListener('blur', clearKeys);
+
 canvas.addEventListener('click', () => {
   if (!game.dead) canvas.requestPointerLock();
 });
 document.addEventListener('pointerlockchange', () => {
-  canvas.style.cursor = document.pointerLockElement === canvas ? 'none' : 'crosshair';
+  const locked = document.pointerLockElement === canvas;
+  canvas.style.cursor = locked ? 'none' : 'crosshair';
+  if (!locked) clearKeys();
 });
 document.addEventListener('mousemove', e => {
   if (document.pointerLockElement === canvas && game.running) {
