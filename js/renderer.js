@@ -69,9 +69,13 @@ function checkPillarRect(rx, ry, dx, dy, mapX, mapY, pw, ph) {
 function checkPillar4(rx, ry, dx, dy, mapX, mapY) {
   return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 1/3, 1/3);
 }
-// 타입 5: 1×0.5 타일 직사각형 기둥 (x폭 1타일, y깊이 0.5타일)
+// 타입 5: 1×0.5 타일 직사각형 기둥
 function checkPillar5(rx, ry, dx, dy, mapX, mapY) {
   return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 1/3, 1/6);
+}
+// 타입 6: 2×2 타일 큰 기둥
+function checkPillar6(rx, ry, dx, dy, mapX, mapY) {
+  return checkPillarRect(rx, ry, dx, dy, mapX, mapY, 2/3, 2/3);
 }
 
 // DDA 레이캐스팅
@@ -89,6 +93,7 @@ function castRay(angle) {
   const _startCell = getCell(mapX, mapY);
   if (_startCell === 4) { const h = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
   if (_startCell === 5) { const h = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
+  if (_startCell === 6) { const h = checkPillar6(rx,ry,dx,dy,mapX,mapY); if (h) return h; }
 
   for (let i = 0; i < 80; i++) {
     if (sdx < sdy) { sdx += ddx; mapX += stepX; side = 0; dist = sdx - ddx; }
@@ -103,6 +108,7 @@ function castRay(angle) {
     }
     if (cell === 4) { const hit = checkPillar4(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
     if (cell === 5) { const hit = checkPillar5(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
+    if (cell === 6) { const hit = checkPillar6(rx,ry,dx,dy,mapX,mapY); if (hit) return hit; }
   }
   return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
 }

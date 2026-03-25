@@ -20,40 +20,61 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성 — 백룸 스타일 방 + 기둥
-const ZONE = 10; // 존 크기 (방 내부 9x9 + 1칸 경계벽)
+// 개별 셀 생성 — 백룸 스타일
+const ZONE = 10;
 
 function generateCell(gx, gy) {
   const zx = Math.floor(gx / ZONE), zy = Math.floor(gy / ZONE);
   const lx = ((gx % ZONE) + ZONE) % ZONE;
   const ly = ((gy % ZONE) + ZONE) % ZONE;
-
   const onEast  = lx === ZONE - 1;
   const onSouth = ly === ZONE - 1;
 
+  const zt       = rand(zx, zy, 1);
+  const isLarge  = zt < 0.18;              // 18%: 넓은 방 (벽 합쳐짐, 큰 기둥)
+  const isSubdiv = zt >= 0.18 && zt < 0.45; // 27%: 내부 분할벽 있는 방
+  const isEmpty  = zt > 0.78;              // 22%: 기둥 없는 빈 방
+
   // ── 경계벽 ──────────────────────────────────────────────
   if (onEast || onSouth) {
-    if (onEast && onSouth) return 1; // 코너는 항상 벽
-
+    if (onEast && onSouth) return 1;
+    const mp = isLarge ? 0.48 : 0.18;
     if (onEast) {
-      if (rand(zx, zy, 11) < 0.22) return 0;          // 22%: 벽 제거(대형 공간)
-      const oy = 2 + (rand(zx, zy, 12) * 4 | 0);      // 개구부 위치
+      if (rand(zx, zy, 11) < mp) return 0;
+      const oy = 2 + (rand(zx, zy, 12) * 4 | 0);
       return (ly >= oy && ly < oy + 2) ? 0 : 1;
     }
-    // onSouth
-    if (rand(zx, zy, 13) < 0.22) return 0;
+    if (rand(zx, zy, 13) < mp) return 0;
     const ox = 2 + (rand(zx, zy, 14) * 4 | 0);
     return (lx >= ox && lx < ox + 2) ? 0 : 1;
   }
 
-  // ── 방 내부 기둥 ─────────────────────────────────────────
-  if (lx % 3 === 1 && ly % 3 === 1) {
-    const rt = rand(zx, zy, 99); // 방 타입
-    const prob = rt < 0.25 ? 0.65   // 25%: 기둥 밀집
-               : rt < 0.65 ? 0.35   // 40%: 보통
-               : 0.08;              // 35%: 빈 방
-    const r = rand(gx, gy, 42);
-    if (r < prob) return rand(gx, gy, 43) < 0.2 ? 5 : 4;
+  // ── 내부 분할벽 (양 끝 2칸 항상 열어 고립 방지) ──────────
+  if (isSubdiv) {
+    if (rand(zx, zy, 21) < 0.5) {
+      // 수직 분할벽
+      const wx2 = 3 + (rand(zx, zy, 22) * 3 | 0);
+      if (lx === wx2 && ly >= 2 && ly <= 6) {
+        const gy2 = 2 + (rand(zx, zy, 23) * 2 | 0);
+        if (!(ly >= gy2 && ly < gy2 + 2)) return 1;
+      }
+    } else {
+      // 수평 분할벽
+      const wy2 = 3 + (rand(zx, zy, 24) * 3 | 0);
+      if (ly === wy2 && lx >= 2 && lx <= 6) {
+        const gx2 = 2 + (rand(zx, zy, 25) * 2 | 0);
+        if (!(lx >= gx2 && lx < gx2 + 2)) return 1;
+      }
+    }
+  }
+
+  // ── 기둥 ────────────────────────────────────────────────
+  if (!isEmpty && lx % 3 === 1 && ly % 3 === 1) {
+    const prob = isLarge ? 0.65 : zt < 0.60 ? 0.45 : 0.25;
+    if (rand(gx, gy, 42) < prob) {
+      if (isLarge) return 6;                    // 2×2타일 큰 기둥
+      return rand(gx, gy, 43) < 0.25 ? 5 : 4;  // 직사각형 / 정사각형
+    }
   }
 
   return 0;
@@ -95,9 +116,13 @@ function isWall(wx, wy) {
     return lx >= 1/3 && lx < 2/3 && ly >= 1/3 && ly < 2/3;
   }
   if (cell === 5) {
-    // 1×0.5 타일 기둥: x=1/3~2/3, y=5/12~7/12
     const lx = wx - Math.floor(wx), ly = wy - Math.floor(wy);
     return lx >= 1/3 && lx < 2/3 && ly >= 5/12 && ly < 7/12;
+  }
+  if (cell === 6) {
+    // 2×2타일 큰 기둥: x=1/6~5/6, y=1/6~5/6
+    const lx = wx - Math.floor(wx), ly = wy - Math.floor(wy);
+    return lx >= 1/6 && lx < 5/6 && ly >= 1/6 && ly < 5/6;
   }
   return false;
 }
@@ -125,6 +150,8 @@ function buildShowcaseMap() {
   m[14][22] = 4;
   // ── 1×0.5 타일 직사각형 기둥 (셀 타입 5) ─────────────────
   m[14][26] = 5;
+  // ── 2×2 타일 큰 기둥 (셀 타입 6) ─────────────────────────
+  m[14][30] = 6;
 
   return m;
 }
