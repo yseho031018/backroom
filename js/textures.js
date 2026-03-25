@@ -30,20 +30,14 @@ const floorTexL0 = mkTex((tx, S) => {
 });
 const ceilTexL0 = mkTex((tx, S) => {
   tx.fillStyle = '#8c8980'; tx.fillRect(0, 0, S, S);
-  const T = S >> 2;        // 16  — 칸 크기
-  const h = T >> 1;        // 8   — 반 칸 오프셋
-  // 격자선을 h, h+T, h+2T, h+3T (= 8, 24, 40, 56) 에 배치
-  // → 경계 타일링 시 8+8=16 으로 이어져 균일하며, 중앙 칸이 24~40 에 딱 맞음
-  const lines = [0, h, h+T, h+2*T, h+3*T, S];
-  for (let cy = 0; cy < lines.length-1; cy++) {
-    for (let cx = 0; cx < lines.length-1; cx++) {
-      const x = lines[cx], w = lines[cx+1]-lines[cx];
-      const y = lines[cy], hh = lines[cy+1]-lines[cy];
-      tx.strokeStyle = 'rgba(48,46,42,0.55)'; tx.lineWidth = 1;
-      tx.strokeRect(x+0.5, y+0.5, w-1, hh-1);
-    }
+  const T = S >> 2; // 16 — 모두 동일한 정사각형 칸
+  // 균일 4×4 격자 (얇은 선)
+  for (let cy = 0; cy < 4; cy++) for (let cx = 0; cx < 4; cx++) {
+    tx.strokeStyle = 'rgba(40,38,34,0.7)'; tx.lineWidth = 0.5;
+    tx.strokeRect(cx*T + 0.5, cy*T + 0.5, T - 1, T - 1);
   }
-  // 중앙 칸 (24~40) 에 램프 패널 — 테두리 1px 안쪽
-  tx.fillStyle = '#ffffff'; tx.fillRect(h+T+1, h+T+1, T-2, T-2);
+  // 램프: 텍스처 정중앙에 배치 (격자선이 얇아서 시각적으로 중앙 칸처럼 보임)
+  const pw = T - 2, ph = T - 2, ox = (S - pw) >> 1, oy = (S - ph) >> 1;
+  tx.fillStyle = '#ffffff'; tx.fillRect(ox, oy, pw, ph);
 });
 
