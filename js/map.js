@@ -20,95 +20,12 @@ function evictChunkIfNeeded() {
   }
 }
 
-// 개별 셀 생성: 대형 기둥방 + 일반방 + 복도형 + 벽
+// 개별 셀 생성: 복도 + 벽 (구조물은 추후 추가)
 function generateCell(gx, gy) {
-  // ① 복도 (3의 배수) — 항상 열림
+  // 복도 (3의 배수) — 항상 열림
   if (gx % 3 === 0 || gy % 3 === 0) return 0;
 
-  // ② 대형 기둥방 (18×18 구역, 10~16칸, 4칸 간격 기둥)
-  const lsx = Math.floor(gx / 18), lsy = Math.floor(gy / 18);
-  for (let dlx = -1; dlx <= 1; dlx++) {
-    for (let dly = -1; dly <= 1; dly++) {
-      const nlx = lsx + dlx, nly = lsy + dly;
-      if (rand(nlx, nly, 33) > 0.50) continue;
-      const rw = 10 + (rand(nlx, nly, 34) * 7 | 0);
-      const rh = 10 + (rand(nlx, nly, 35) * 7 | 0);
-      const ox = 1 + (rand(nlx, nly, 36) * Math.max(1, 16 - rw) | 0);
-      const oy = 1 + (rand(nlx, nly, 37) * Math.max(1, 16 - rh) | 0);
-      const x0=nlx*18+ox, x1=x0+rw-1, y0=nly*18+oy, y1=y0+rh-1;
-      if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
-        if (gx>x0 && gx<x1 && gy>y0 && gy<y1) {
-          if (gx%3===1 && gy%3===1) return 1; // 기둥
-        }
-        return 0;
-      }
-    }
-  }
-
-  // ③ 다양한 방 형태 (9×9 구역): 직사각형, L자형, 십자형, 돌출형
-  const sx = Math.floor(gx / 9), sy = Math.floor(gy / 9);
-  for (let dsx = -1; dsx <= 1; dsx++) {
-    for (let dsy = -1; dsy <= 1; dsy++) {
-      const nsx = sx + dsx, nsy = sy + dsy;
-      if (rand(nsx, nsy, 7) > 0.55) continue;
-      const bx = nsx * 9, by = nsy * 9;
-      const rtype = rand(nsx, nsy, 15) * 4 | 0;
-
-      if (rtype === 0) {
-        // 직사각형 방
-        const rw = 4 + (rand(nsx, nsy, 2) * 5 | 0);
-        const rh = 4 + (rand(nsx, nsy, 3) * 5 | 0);
-        const ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 8 - rw) | 0);
-        const oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 8 - rh) | 0);
-        const x0=bx+ox, x1=x0+rw-1, y0=by+oy, y1=y0+rh-1;
-        if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) return 0;
-
-      } else if (rtype === 1) {
-        // L자형 방: 세로 직사각형 + 가로 팔
-        const w1 = 3 + (rand(nsx, nsy, 2) * 3 | 0);
-        const h1 = 6 + (rand(nsx, nsy, 3) * 3 | 0);
-        const w2 = 4 + (rand(nsx, nsy, 8) * 4 | 0);
-        const h2 = 3 + (rand(nsx, nsy, 9) * 2 | 0);
-        const ox = 1 + (rand(nsx, nsy, 4) * 3 | 0);
-        const oy = 1 + (rand(nsx, nsy, 5) * 2 | 0);
-        const x0=bx+ox, y0=by+oy;
-        if ((gx>=x0 && gx<=x0+w1-1 && gy>=y0 && gy<=y0+h1-1) ||
-            (gx>=x0 && gx<=x0+w2-1 && gy>=y0+h1-h2 && gy<=y0+h1-1)) return 0;
-
-      } else if (rtype === 2) {
-        // 십자형/T자형 방: 가로바 ✕ 세로바
-        const cx = bx + 3 + (rand(nsx, nsy, 4) * 3 | 0);
-        const cy = by + 3 + (rand(nsx, nsy, 5) * 3 | 0);
-        const hw = 1 + (rand(nsx, nsy, 8) * 2 | 0);
-        const vw = 1 + (rand(nsx, nsy, 9) * 2 | 0);
-        const hl = 4 + (rand(nsx, nsy, 6) * 3 | 0);
-        const vl = 4 + (rand(nsx, nsy, 7) * 3 | 0);
-        if ((gx>=cx-hl && gx<=cx+hl && gy>=cy-hw && gy<=cy+hw) ||
-            (gx>=cx-vw && gx<=cx+vw && gy>=cy-vl && gy<=cy+vl)) return 0;
-
-      } else {
-        // 돌출형 방: 본체 직사각형 + 한쪽에 돌출부
-        const rw = 4 + (rand(nsx, nsy, 2) * 3 | 0);
-        const rh = 4 + (rand(nsx, nsy, 3) * 3 | 0);
-        const ox = 1 + (rand(nsx, nsy, 4) * Math.max(1, 7 - rw) | 0);
-        const oy = 1 + (rand(nsx, nsy, 5) * Math.max(1, 7 - rh) | 0);
-        const x0=bx+ox, x1=x0+rw-1, y0=by+oy, y1=y0+rh-1;
-        const side = rand(nsx, nsy, 10) * 4 | 0;
-        const pl = 2 + (rand(nsx, nsy, 11) * 2 | 0);
-        const pw = 1 + (rand(nsx, nsy, 12) * 2 | 0);
-        const po = rand(nsx, nsy, 13) * Math.max(1, rw - pw) | 0;
-        let px0=x0, px1=x0, py0=y0, py1=y0;
-        if      (side===0) { px0=x0+po; px1=px0+pw-1; py0=y0-pl; py1=y0-1; }
-        else if (side===1) { px0=x0+po; px1=px0+pw-1; py0=y1+1;  py1=y1+pl; }
-        else if (side===2) { px0=x0-pl; px1=x0-1;     py0=y0+po; py1=py0+pw-1; }
-        else               { px0=x1+1;  px1=x1+pl;    py0=y0+po; py1=py0+pw-1; }
-        if ((gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) ||
-            (gx>=px0 && gx<=px1 && gy>=py0 && gy<=py1)) return 0;
-      }
-    }
-  }
-
-  // ④ 벽
+  // 벽
   return 1;
 }
 
