@@ -45,7 +45,7 @@ function castRay(angle) {
   let sdx = (dx > 0 ? mapX+1-rx : rx-mapX)*ddx;
   let sdy = (dy > 0 ? mapY+1-ry : ry-mapY)*ddy;
   let side = 0, dist = 0;
-  for (let i = 0; i < 400; i++) {
+  for (let i = 0; i < 80; i++) {
     if (sdx < sdy) { sdx += ddx; mapX += stepX; side = 0; dist = sdx - ddx; }
     else           { sdy += ddy; mapY += stepY; side = 1; dist = sdy - ddy; }
     if (getCell(mapX, mapY) === 1) {
@@ -56,7 +56,7 @@ function castRay(angle) {
       return { dist, wx: hx, wy: hy, side, wallU: u };
     }
   }
-  return { dist: 400, wx: rx+dx*400, wy: ry+dy*400, side: 0, wallU: 0, exit: false };
+  return { dist: 80, wx: rx+dx*80, wy: ry+dy*80, side: 0, wallU: 0, exit: false };
 }
 
 // ── 스프라이트 빌보드 렌더링 ────────────────────────────────────
@@ -106,7 +106,7 @@ function drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult) {
 }
 
 function drawScene(ctx) {
-  const lvl      = { fogDist: 18, ambMin: 0.28, ceilAmbMin: 0.22 };
+  const lvl      = { fogDist: 12, ambMin: 0.28, ceilAmbMin: 0.22 };
   const FOG_DIST = lvl.fogDist;
   const lightMult = 1;
 
