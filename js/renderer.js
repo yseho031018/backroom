@@ -304,7 +304,7 @@ function drawScene(ctx) {
     // 손전등: row별 사전계산 (3D 내적, sqrt 절약)
     // tpLen ≈ hypot(rowDist, 0.5) — 행 내에서 거의 일정
     let flashRowInv = 0, flashZDotRow = 0, flashDistRow = 0;
-    if (flashlightOn && isFloor && rowDist < 10) {  // 천장은 제외
+    if (flashlightOn && rowDist < 10) {
       flashRowInv  = 1 / Math.hypot(rowDist, 0.5);
       // 바닥은 플레이어 아래(tpZ=-0.5), 천장은 위(tpZ=+0.5)
       flashZDotRow = (isFloor ? -0.5 : 0.5) * flashFDZ * flashRowInv;
