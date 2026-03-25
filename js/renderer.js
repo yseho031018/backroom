@@ -162,7 +162,7 @@ function drawScene(ctx) {
     const rowBase = sy * W * 4;
     const flashRowBase = flashlightOn ? Math.max(0, 1 - rowDist / 9) : 0;
     // 바닥/천장 수직 편차 (HALF 기준)
-    const flashFVY = flashRowBase > 0 ? (sy - HALF) / (H * 0.42) : 0;
+    const flashFVY = flashRowBase > 0 ? (sy - H/2) / (H * 0.42) : 0;
     for (let sx = 0; sx < W; sx++) {
       const flashFC = flashRowBase > 0
         ? (() => {
@@ -222,8 +222,8 @@ function drawScene(ctx) {
       const pi = (y * W + x) << 2;
       let shade = baseShadeW;
       if (flashDistW > 0) {
-        // 수직 편차: 화면 중앙(HALF) 기준
-        const flashVY = (y - HALF) / (H * 0.42);
+        // 수직 편차: 시선 중앙(H/2) 기준 — pitch 따라 움직임
+        const flashVY = (y - H/2) / (H * 0.42);
         const flashR = Math.hypot(flashHX, flashVY);
         shade = Math.min(1.6, shade + Math.max(0, 1 - flashR * 2.6) * flashDistW);
       }
@@ -248,7 +248,7 @@ function drawScene(ctx) {
   // ── 손전등 글로우 오버레이 ────────────────────────────────────
   if (flashlightOn) {
     const flR = H * 0.38;
-    const flGrad = ctx.createRadialGradient(W/2, HALF, 0, W/2, HALF, flR);
+    const flGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, flR);
     flGrad.addColorStop(0,    'rgba(255,248,210,0.20)');
     flGrad.addColorStop(0.40, 'rgba(255,245,200,0.06)');
     flGrad.addColorStop(1,    'rgba(0,0,0,0)');
