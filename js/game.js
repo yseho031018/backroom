@@ -4,7 +4,7 @@ const ctx    = canvas.getContext('2d');
 
 let game = { px:0.5, py:0.5, angle:0, battery:100, sanity:100, level:0, running:false, dead:false };
 let keys = {}, last = 0, gameTime = 0;
-let bobPhase = 0, bobAmp = 0, pitch = 0;
+let bobPhase = 0, bobAmp = 0, pitch = 0, crouchOffset = 0;
 let msgTimer = 0;
 let isMoving = false;
 let whisperTimer = 0;
@@ -25,18 +25,22 @@ function startGame() {
   if (typeof activeEntities !== 'undefined') activeEntities.length = 0;
   if (typeof pickedItems !== 'undefined') pickedItems.clear();
   game = { px:0.5, py:0.5, angle:0, battery:100, sanity:100, running:true, dead:false };
-  bobPhase=0; bobAmp=0; pitch=0; last=0; gameTime=0;
+  bobPhase=0; bobAmp=0; pitch=0; crouchOffset=0; last=0; gameTime=0;
   whisperTimer=0; isMoving=false;
 initRenderer(ctx);
   initAudio && initAudio();
   requestAnimationFrame(loop);
 }
 
-const GAME_KEYS = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D']);
+const GAME_KEYS = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D','Shift','Control']);
 
 function move(dt) {
   if (game.dead) return;
-  const SPD = 1.5;
+  const isCrouching = keys['Control'];
+  const isSprinting = keys['Shift'] && !isCrouching;
+  const spdMult = isSprinting ? 2.4 : isCrouching ? 0.5 : 1.0;
+  const SPD = 1.5 * spdMult;
+
   let fx = 0, fy = 0;
   if (keys['ArrowUp']   ||keys['w']||keys['W']) { fx+=Math.cos(game.angle);    fy+=Math.sin(game.angle);    }
   if (keys['ArrowDown'] ||keys['s']||keys['S']) { fx-=Math.cos(game.angle);    fy-=Math.sin(game.angle);    }
@@ -61,8 +65,16 @@ function move(dt) {
   else if (!blocked(game.px, ny))     { game.py=ny; }
 
   isMoving = len > 0;
-  if (isMoving) bobPhase += spd * 6.5;
+  const bobSpeed = isSprinting ? 10 : isCrouching ? 4 : 6.5;
+  if (isMoving) bobPhase += spd * bobSpeed;
   bobAmp = isMoving ? Math.min(1, bobAmp+dt*12) : Math.max(0, bobAmp-dt*9);
+
+  // 앉기: 카메라를 부드럽게 낮춤
+  const crouchTarget = isCrouching ? 70 : 0;
+  crouchOffset += (crouchTarget - crouchOffset) * Math.min(1, dt * 12);
+
+  // 달리기: 배터리 소모 증가
+  if (isSprinting && isMoving) game.battery = Math.max(0, game.battery - 0.4*dt);
 }
 
 function updateUI() {

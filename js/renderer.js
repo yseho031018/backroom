@@ -115,7 +115,7 @@ function drawScene(ctx) {
   const sanityOsc = sanity < 60 ? Math.sin(gameTime * 1.1) * (60 - sanity) * 0.05 : 0;
 
   const FOV  = Math.PI / 5.5;
-  const HALF = (H/2) + pitch + Math.sin(bobPhase)*9*bobAmp + sanityOsc;
+  const HALF = (H/2) + pitch + (typeof crouchOffset!=='undefined'?crouchOffset:0) + Math.sin(bobPhase)*9*bobAmp + sanityOsc;
   const WALL_SCALE = 1.6;
   const camH = WALL_SCALE * 0.5 * H;
 
