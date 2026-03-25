@@ -9,6 +9,7 @@ let bobPhase = 0, bobAmp = 0, pitch = 0, crouchOffset = 0;
 let msgTimer = 0;
 let isMoving = false;
 let whisperTimer = 0;
+let flashlightOn = false;
 
 function showMsg(text, duration = 3) {
   const el = document.getElementById('msg');
@@ -95,6 +96,8 @@ function move(dt) {
 
   // 달리기: 배터리 소모 증가
   if (isSprinting && isMoving) game.battery = Math.max(0, game.battery - 0.4*dt);
+  // 손전등: 배터리 소모
+  if (flashlightOn) game.battery = Math.max(0, game.battery - 1.2*dt);
 }
 
 function updateUI() {
@@ -200,13 +203,21 @@ function clearKeys() { for (const k in keys) keys[k] = false; }
 window.addEventListener('blur', clearKeys);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearKeys(); });
 
-canvas.addEventListener('click', () => {
-  if (!game.dead) canvas.requestPointerLock();
+canvas.addEventListener('mousedown', e => {
+  if (e.button === 0) {
+    if (document.pointerLockElement === canvas) {
+      // 포인터락 상태에서 좌클릭 → 손전등 켜기
+      flashlightOn = true;
+    } else {
+      if (!game.dead) canvas.requestPointerLock();
+    }
+  }
 });
+canvas.addEventListener('mouseup', e => { if (e.button === 0) flashlightOn = false; });
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === canvas;
   canvas.style.cursor = locked ? 'none' : 'crosshair';
-  if (!locked) clearKeys();
+  if (!locked) { clearKeys(); flashlightOn = false; }
 });
 document.addEventListener('mousemove', e => {
   if (document.pointerLockElement === canvas && game.running) {

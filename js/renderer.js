@@ -160,7 +160,11 @@ function drawScene(ctx) {
     const stepX = rowDist * drdx / W, stepY = rowDist * drdy / W;
     let fx = game.px + rowDist * rdx0, fy = game.py + rowDist * rdy0;
     const rowBase = sy * W * 4;
+    const flashRowBase = flashlightOn ? Math.max(0, 1 - rowDist / 9) : 0;
     for (let sx = 0; sx < W; sx++) {
+      const flashFC = flashRowBase > 0
+        ? flashRowBase * Math.max(0, 1 - Math.abs(sx / W - 0.5) * 4.0) * 1.6
+        : 0;
       const tx = (((fx - Math.floor(fx)) * TEX)|0) & (TEX-1);
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
       const ti = (ty * TEX + tx) << 2;
@@ -180,8 +184,9 @@ function drawScene(ctx) {
           buf[pi+3]=255; fx+=stepX; fy+=stepY; continue;
         }
       }
-      buf[pi]  =tr*baseShade|0; buf[pi+1]=tg*baseShade|0;
-      buf[pi+2]=tb*baseShade|0; buf[pi+3]=255;
+      const shade2 = Math.min(1.6, baseShade + flashFC);
+      buf[pi]  =Math.min(255,tr*shade2)|0; buf[pi+1]=Math.min(255,tg*shade2)|0;
+      buf[pi+2]=Math.min(255,tb*shade2)|0; buf[pi+3]=255;
       fx+=stepX; fy+=stepY;
     }
   }
@@ -199,7 +204,11 @@ function drawScene(ctx) {
     const texUi = Math.floor(ray.wallU * TEX) & (TEX-1);
     const _f2 = Math.max(0, 1 - corr / FOG_DIST); const fog = _f2 * _f2;
     const wl    = getLightAtPoint(ray.wx, ray.wy, nearLamps) * lightMult;
-    let shade   = wl * fog * (ray.side === 0 ? 1 : 0.88);
+    // 손전등: 중앙 원뿔 형태로 거리 기반 감쇠
+    const flashCone = (flashlightOn && corr < 12)
+      ? Math.max(0, 1 - Math.abs(x / W - 0.5) * 4.0) * Math.max(0, 1 - corr / 10) * 2.2
+      : 0;
+    let shade   = Math.min(1.6, wl * fog * (ray.side === 0 ? 1 : 0.88) + flashCone);
 
     const segH = bot - top, texVscale = TEX / segH;
     for (let y = top; y < bot; y++) {
@@ -223,6 +232,16 @@ function drawScene(ctx) {
   drawSprites(buf, sprites, HALF, FOV, FOG_DIST, lightMult);
 
   ctx.putImageData(_imgData, 0, 0);
+
+  // ── 손전등 글로우 오버레이 ────────────────────────────────────
+  if (flashlightOn) {
+    const flGrad = ctx.createRadialGradient(W/2, HALF, 0, W/2, HALF, W * 0.52);
+    flGrad.addColorStop(0,    'rgba(255,248,210,0.22)');
+    flGrad.addColorStop(0.35, 'rgba(255,245,200,0.08)');
+    flGrad.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.fillStyle = flGrad;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // ── 포스트이펙트 ──────────────────────────────────────────────
   ctx.fillStyle = _vigRadial;          ctx.fillRect(0, 0, W, H);
