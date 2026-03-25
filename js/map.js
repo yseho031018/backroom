@@ -39,9 +39,6 @@ function generateCell(gx, gy) {
       if (gx>=x0 && gx<=x1 && gy>=y0 && gy<=y1) {
         if (gx>x0 && gx<x1 && gy>y0 && gy<y1) {
           if (gx%3===1 && gy%3===1) return 1; // 기둥
-          // 기둥 사이 얇은 벽 (복도 위치 gx%3===0 은 항상 열림)
-          if (gx%3===2 && gy%3===1 && rand(gx, gy, 52) < 0.6) return 2; // 얇은 수직벽
-          if (gx%3===1 && gy%3===2 && rand(gx, gy, 53) < 0.6) return 3; // 얇은 수평벽
         }
         return 0;
       }
@@ -144,8 +141,7 @@ function getCell(gx, gy) {
 }
 
 function isWall(wx, wy) {
-  const c = getCell(Math.floor(wx), Math.floor(wy));
-  return c === 1 || c === 2 || c === 3;
+  return getCell(Math.floor(wx), Math.floor(wy)) === 1;
 }
 
 function findSafeStart() {
@@ -179,36 +175,14 @@ function buildShowcaseMap() {
   fill(30, 16, 37, 24, 0);
   // 기둥방 ↔ 입구 복도
   fill(26, 18, 30, 22, 0);
-  // 입구 ↔ 얇은벽방 복도
-  fill(37, 18, 40, 22, 0);
-
-  // ── 섹션 2: 얇은 벽 구역 (x:40-60, y:2-39) ───────────────
+  // ── 섹션 2: 일반 방 구역 (x:40-60, y:2-39) ───────────────
   fill(40, 2, 60, 39, 0);
-
-  // 얇은 수직벽 (type 2) at x=45 — 위아래 두 구역, 복도 레벨에 통로
-  for (let y = 3; y <= 38; y++) {
-    if (y >= 18 && y <= 22) continue; // 복도 레벨 통로
-    if (y >= 8  && y <= 10) continue; // 상단 통로
-    m[y][45] = 2;
-  }
-  // 얇은 수직벽 at x=53 — 다른 높이에 통로
-  for (let y = 3; y <= 38; y++) {
-    if (y >= 18 && y <= 22) continue;
-    if (y >= 30 && y <= 32) continue; // 하단 통로
-    m[y][53] = 2;
-  }
-
-  // 얇은 수평벽 (type 3) at y=13 — x=45,53 위치는 수직벽과 겹치므로 양쪽에 배치
-  for (let x = 41; x <= 60; x++) {
-    if (x === 45 || x === 53) continue; // 수직벽 위치 skip (교차 충돌 방지)
-    if (x >= 46 && x <= 48) continue;   // 통로
-    m[13][x] = 3;
-  }
-  // 얇은 수평벽 at y=27
-  for (let x = 41; x <= 60; x++) {
-    if (x === 45 || x === 53) continue;
-    if (x >= 54 && x <= 56) continue;   // 통로
-    m[27][x] = 3;
+  // 입구 ↔ 섹션2 복도
+  fill(37, 18, 40, 22, 0);
+  // 섹션2 내부 벽 기둥 (일반 1x1)
+  for (let py = 6; py <= 36; py += 6) {
+    if (py >= 17 && py <= 23) continue;
+    for (let px = 44; px <= 58; px += 6) m[py][px] = 1;
   }
 
   return m;
