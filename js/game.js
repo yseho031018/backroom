@@ -159,7 +159,7 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('mousemove', e => {
   if (document.pointerLockElement === canvas && game.running) {
     game.angle += e.movementX * 0.003;
-    pitch = Math.max(-235, Math.min(235, pitch - e.movementY * 0.5));
+    pitch = Math.max(-235, Math.min(235, pitch - e.movementY * 1.2));
   }
 });
 

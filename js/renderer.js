@@ -140,7 +140,10 @@ function drawScene(ctx) {
     if (py2 < 1) continue;
     if (py2 <= minPy) {
       const base = sy * W * 4;
-      for (let sx = 0; sx < W; sx++) buf[base + sx*4 + 3] = 255;
+      for (let sx = 0; sx < W; sx++) {
+        buf[base + sx*4] = 0; buf[base + sx*4+1] = 0;
+        buf[base + sx*4+2] = 0; buf[base + sx*4+3] = 255;
+      }
       continue;
     }
     const isFloor  = sy > HALF;
