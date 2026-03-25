@@ -123,6 +123,13 @@ function drawScene(ctx) {
   const WALL_SCALE = 1.6;
   const camH = WALL_SCALE * 0.5 * H;
 
+  // 손전등 3D 방향 (정규화) — pitch 변환: WALL_SCALE*H 기준
+  const _flashPDZ = pitch / (WALL_SCALE * H);
+  const _flashLen = Math.hypot(1, _flashPDZ);
+  const flashFDX = Math.cos(game.angle) / _flashLen;
+  const flashFDY = Math.sin(game.angle) / _flashLen;
+  const flashFDZ = _flashPDZ / _flashLen;
+
   const nearLamps  = getLampsNear(game.px, game.py, 8);
   nearLamps.forEach(ensureLampState);
   const lightAhead = getLightAtPoint(
@@ -160,16 +167,24 @@ function drawScene(ctx) {
     const stepX = rowDist * drdx / W, stepY = rowDist * drdy / W;
     let fx = game.px + rowDist * rdx0, fy = game.py + rowDist * rdy0;
     const rowBase = sy * W * 4;
-    const flashRowBase = flashlightOn ? Math.max(0, 1 - rowDist / 9) : 0;
-    // 바닥/천장 수직 편차 (HALF 기준)
-    const flashFVY = flashRowBase > 0 ? (sy - H/2) / (H * 0.42) : 0;
+    // 손전등: row별 사전계산 (3D 내적, sqrt 절약)
+    // tpLen ≈ hypot(rowDist, 0.5) — 행 내에서 거의 일정
+    let flashRowInv = 0, flashZDotRow = 0, flashDistRow = 0;
+    if (flashlightOn && rowDist < 10) {
+      flashRowInv  = 1 / Math.hypot(rowDist, 0.5);
+      // 바닥은 플레이어 아래(tpZ=-0.5), 천장은 위(tpZ=+0.5)
+      flashZDotRow = (isFloor ? -0.5 : 0.5) * flashFDZ * flashRowInv;
+      flashDistRow = Math.max(0, 1 - rowDist / 10);
+    }
     for (let sx = 0; sx < W; sx++) {
-      const flashFC = flashRowBase > 0
-        ? (() => {
-            const fh = (sx / W - 0.5) * 2.5;
-            return Math.max(0, 1 - Math.hypot(fh, flashFVY) * 2.6) * flashRowBase * 1.6;
-          })()
-        : 0;
+      let flashFC = 0;
+      if (flashRowInv > 0) {
+        // 3D 내적: (toPix · flashDir) / |toPix|
+        // 각도가 클수록(정면에서 멀수록) 타원 형태로 자연스럽게 줄어듦
+        const tpX = fx - game.px, tpY = fy - game.py;
+        const dot = (tpX * flashFDX + tpY * flashFDY) * flashRowInv + flashZDotRow;
+        flashFC = Math.max(0, (dot - 0.76) / 0.24) * flashDistRow * 2.2;
+      }
       const tx = (((fx - Math.floor(fx)) * TEX)|0) & (TEX-1);
       const ty = (((fy - Math.floor(fy)) * TEX)|0) & (TEX-1);
       const ti = (ty * TEX + tx) << 2;
@@ -210,10 +225,12 @@ function drawScene(ctx) {
     const _f2 = Math.max(0, 1 - corr / FOG_DIST); const fog = _f2 * _f2;
     const wl    = getLightAtPoint(ray.wx, ray.wy, nearLamps) * lightMult;
     const baseShadeW = wl * fog * (ray.side === 0 ? 1 : 0.88);
-    // 손전등: 거리 감쇠 (수평은 per-pixel에서 계산)
-    const flashDistW = (flashlightOn && corr < 12)
-      ? Math.max(0, 1 - corr / 10) * 2.2 : 0;
-    const flashHX = (x / W - 0.5) * 2.5; // 수평 편차
+    // 손전등 벽: 수평 내적 사전계산, 수직은 pixel별 (tpZ ≈ (HALF-y)*corr/(WALL_SCALE*H))
+    const flashWallOn = flashlightOn && corr < 12;
+    const flashHBase  = flashWallOn
+      ? ((ray.wx - game.px) * flashFDX + (ray.wy - game.py) * flashFDY) / corr : 0;
+    const flashZfact  = flashWallOn ? flashFDZ / (WALL_SCALE * H) : 0;
+    const flashWDist  = flashWallOn ? Math.max(0, 1 - corr / 10) * 2.2 : 0;
 
     const segH = bot - top, texVscale = TEX / segH;
     for (let y = top; y < bot; y++) {
@@ -221,11 +238,10 @@ function drawScene(ctx) {
       const ti = (texVi * TEX + texUi) << 2;
       const pi = (y * W + x) << 2;
       let shade = baseShadeW;
-      if (flashDistW > 0) {
-        // 수직 편차: 시선 중앙(H/2) 기준 — pitch 따라 움직임
-        const flashVY = (y - H/2) / (H * 0.42);
-        const flashR = Math.hypot(flashHX, flashVY);
-        shade = Math.min(1.6, shade + Math.max(0, 1 - flashR * 2.6) * flashDistW);
+      if (flashWDist > 0) {
+        // tpZ (눈 기준 높이): (HALF-y)*corr/(WALL_SCALE*H), dot ≈ /corr
+        const dot = flashHBase + flashZfact * (HALF - y);
+        shade = Math.min(1.6, shade + Math.max(0, (dot - 0.76) / 0.24) * flashWDist);
       }
       buf[pi]  =Math.min(255,wTex[ti]  *shade)|0;
       buf[pi+1]=Math.min(255,wTex[ti+1]*shade)|0;
